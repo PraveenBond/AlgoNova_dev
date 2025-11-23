@@ -1,4 +1,0 @@
-"""
-API Routers Module
-"""
-
