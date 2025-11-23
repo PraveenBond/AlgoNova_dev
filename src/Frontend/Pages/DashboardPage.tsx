@@ -1,61 +1,201 @@
-import { useEffect, useState } from 'react'
-import api from '../services/api'
+import { useState } from 'react'
+import { Area, Bar, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts'
 import './DashboardPage.css'
 
-interface BrokerStatus {
-  connected: boolean
-  message: string
+interface KPICardProps {
+  title: string
+  value: string
+  description: string
+  icon: React.ReactNode
+  highlighted?: boolean
+}
+
+const KPICard: React.FC<KPICardProps> = ({ title, value, description, icon, highlighted }) => {
+  return (
+    <div className={`kpi-card ${highlighted ? 'highlighted' : ''}`}>
+      <div className="kpi-header">
+        <h3 className="kpi-title">{title}</h3>
+        <div className="kpi-icon">{icon}</div>
+      </div>
+      <div className="kpi-value">{value}</div>
+      <div className="kpi-description">{description}</div>
+    </div>
+  )
 }
 
 const DashboardPage = () => {
-  const [brokerStatus, setBrokerStatus] = useState<BrokerStatus | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [chartView, setChartView] = useState<'cumulative' | 'daily' | 'both'>('both')
 
-  useEffect(() => {
-    fetchBrokerStatus()
-  }, [])
+  // Sample data for the performance chart
+  const performanceData = [
+    { date: '23 Oct', netDaily: -2000, cumulative: -2000 },
+    { date: '24 Oct', netDaily: -1500, cumulative: -3500 },
+    { date: '25 Oct', netDaily: -1000, cumulative: -4500 },
+    { date: '26 Oct', netDaily: 1000, cumulative: -3500 },
+    { date: '27 Oct', netDaily: 6000, cumulative: 2500 },
+    { date: '28 Oct', netDaily: -3000, cumulative: -500 },
+    { date: '29 Oct', netDaily: -7000, cumulative: -7500 },
+    { date: '30 Oct', netDaily: 5000, cumulative: -2500 },
+    { date: '31 Oct', netDaily: -2000, cumulative: -4500 },
+    { date: '01 Nov', netDaily: 1000, cumulative: -3500 },
+    { date: '02 Nov', netDaily: -1000, cumulative: -4500 },
+    { date: '03 Nov', netDaily: -3000, cumulative: -7500 },
+  ]
 
-  const fetchBrokerStatus = async () => {
-    try {
-      const response = await api.get<BrokerStatus>('/api/broker/status')
-      setBrokerStatus(response.data)
-    } catch (error) {
-      console.error('Failed to fetch broker status:', error)
-    } finally {
-      setLoading(false)
-    }
+  // Custom function to get color based on value
+  const getBarColor = (value: number) => {
+    return value >= 0 ? '#27AE60' : '#E74C3C'
   }
 
   return (
     <div className="dashboard-page">
-      <h1>Dashboard</h1>
-      <div className="dashboard-grid">
-        <div className="dashboard-card">
-          <h2>Broker Connection</h2>
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <div>
-              <p className={brokerStatus?.connected ? 'status-connected' : 'status-disconnected'}>
-                {brokerStatus?.connected ? '✓ Connected' : '✗ Disconnected'}
-              </p>
-              <p className="status-message">{brokerStatus?.message}</p>
-            </div>
-          )}
-        </div>
-        <div className="dashboard-card">
-          <h2>Quick Actions</h2>
-          <div className="quick-actions">
-            <button onClick={() => window.location.href = '/broker/connect'}>
-              Connect Broker
+      <div className="kpi-grid">
+        <KPICard
+          title="Available Balance"
+          value="₹ 40,689"
+          description="Total Available balance"
+          icon={
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <rect x="4" y="8" width="24" height="18" rx="2" fill="#27AE60" fillOpacity="0.2"/>
+              <path d="M16 12V20M12 16H20" stroke="#27AE60" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M8 14H24" stroke="#27AE60" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          }
+        />
+        <KPICard
+          title="Number Trades"
+          value="10"
+          description="Today Number of Trades"
+          icon={
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <rect x="6" y="6" width="20" height="20" rx="2" fill="#F39C12" fillOpacity="0.2"/>
+              <path d="M12 12H20M12 16H20M12 20H16" stroke="#F39C12" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          }
+          highlighted
+        />
+        <KPICard
+          title="Profit & Loss (P&L)"
+          value="₹ 10,000"
+          description="Today Total Profit & Loss"
+          icon={
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <path d="M4 20L12 12L18 18L28 8" stroke="#27AE60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M28 8H22V14" stroke="#27AE60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          }
+        />
+        <KPICard
+          title="Total Balance"
+          value="₹ 50,689"
+          description="Total Available balance + Profit"
+          icon={
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <rect x="6" y="6" width="20" height="20" rx="2" fill="#3498DB" fillOpacity="0.2"/>
+              <path d="M12 12H20M12 16H20M12 20H20" stroke="#3498DB" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          }
+        />
+        <KPICard
+          title="Weekly P&L"
+          value="₹ 50,689"
+          description="Weekly P&L"
+          icon={
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <circle cx="16" cy="16" r="12" stroke="#27AE60" strokeWidth="2" fill="#27AE60" fillOpacity="0.2"/>
+              <path d="M16 8V16L20 20" stroke="#27AE60" strokeWidth="2" strokeLinecap="round"/>
+              <text x="16" y="18" textAnchor="middle" fontSize="8" fill="#27AE60" fontWeight="bold">WEEK</text>
+            </svg>
+          }
+        />
+        <KPICard
+          title="Monthly (P&L)"
+          value="₹ 1,00,000"
+          description="Monthly Profit & Loss"
+          icon={
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <circle cx="16" cy="16" r="12" stroke="#FF6B9D" strokeWidth="2" fill="#FF6B9D" fillOpacity="0.2"/>
+              <path d="M16 8V16L20 20" stroke="#FF6B9D" strokeWidth="2" strokeLinecap="round"/>
+              <text x="16" y="18" textAnchor="middle" fontSize="8" fill="#FF6B9D" fontWeight="bold">MONTH</text>
+            </svg>
+          }
+        />
+      </div>
+
+      <div className="performance-card">
+        <div className="performance-header">
+          <h2 className="performance-title">Performance</h2>
+          <div className="performance-controls">
+            <button
+              className={`chart-toggle ${chartView === 'cumulative' ? 'active' : ''}`}
+              onClick={() => setChartView('cumulative')}
+            >
+              Cumulative P/L
             </button>
-            <button onClick={() => window.location.href = '/orders'}>
-              Place Order
+            <button
+              className={`chart-toggle ${chartView === 'daily' ? 'active' : ''}`}
+              onClick={() => setChartView('daily')}
+            >
+              Net Daily P/L
             </button>
-            <button onClick={() => window.location.href = '/strategies'}>
-              Manage Strategies
+            <button
+              className={`chart-toggle ${chartView === 'both' ? 'active' : ''}`}
+              onClick={() => setChartView('both')}
+            >
+              Both
             </button>
           </div>
+        </div>
+        <div className="performance-chart">
+          <ResponsiveContainer width="100%" height={400}>
+            <ComposedChart data={performanceData} margin={{ top: 10, right: 80, left: 20, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+              <XAxis dataKey="date" stroke="#666" />
+              <YAxis
+                yAxisId="left"
+                label={{ value: 'Net Daily Profit and Loss', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
+                stroke="#666"
+                domain={[-8000, 8000]}
+              />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                label={{ value: 'Cumulative Profit and Loss', angle: 90, position: 'insideRight', style: { textAnchor: 'middle' } }}
+                stroke="#666"
+                domain={[-20000, 20000]}
+              />
+              <defs>
+                <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#E74C3C" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="#E74C3C" stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
+              <Tooltip />
+              {(chartView === 'cumulative' || chartView === 'both') && (
+                <Area
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="cumulative"
+                  fill="url(#colorCumulative)"
+                  fillOpacity={0.3}
+                  stroke="#E74C3C"
+                  strokeWidth={2}
+                  name="Cumulative P/L"
+                />
+              )}
+              {(chartView === 'daily' || chartView === 'both') && (
+                <Bar yAxisId="left" dataKey="netDaily" name="Net Daily P/L">
+                  {performanceData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={getBarColor(entry.netDaily)} />
+                  ))}
+                </Bar>
+              )}
+              <Legend />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="performance-footer">
+          <span className="performance-help">What's this? Learn more.</span>
         </div>
       </div>
     </div>
@@ -63,4 +203,3 @@ const DashboardPage = () => {
 }
 
 export default DashboardPage
-
