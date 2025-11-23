@@ -1,6 +1,16 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Area, Bar, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts'
+import api from '../services/api'
 import './DashboardPage.css'
+
+interface DashboardStats {
+  available_balance: number
+  number_trades: number
+  today_pnl: number
+  total_balance: number
+  weekly_pnl: number
+  monthly_pnl: number
+}
 
 interface KPICardProps {
   title: string
@@ -25,6 +35,40 @@ const KPICard: React.FC<KPICardProps> = ({ title, value, description, icon, high
 
 const DashboardPage = () => {
   const [chartView, setChartView] = useState<'cumulative' | 'daily' | 'both'>('both')
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchDashboardStats()
+    // Refresh stats every 30 seconds
+    const interval = setInterval(fetchDashboardStats, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const fetchDashboardStats = async () => {
+    try {
+      const response = await api.get<DashboardStats>('/api/portfolio/dashboard-stats')
+      setStats(response.data)
+    } catch (error) {
+      console.error('Failed to fetch dashboard stats:', error)
+      // Set default values on error
+      setStats({
+        available_balance: 0,
+        number_trades: 0,
+        today_pnl: 0,
+        total_balance: 0,
+        weekly_pnl: 0,
+        monthly_pnl: 0
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Format currency with Indian number formatting
+  const formatCurrency = (value: number): string => {
+    return `₹ ${value.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`
+  }
 
   // Sample data for the performance chart
   const performanceData = [
@@ -47,12 +91,20 @@ const DashboardPage = () => {
     return value >= 0 ? '#27AE60' : '#E74C3C'
   }
 
+  if (loading) {
+    return (
+      <div className="dashboard-page">
+        <div style={{ padding: '2rem', textAlign: 'center' }}>Loading dashboard...</div>
+      </div>
+    )
+  }
+
   return (
     <div className="dashboard-page">
       <div className="kpi-grid">
         <KPICard
           title="Available Balance"
-          value="₹ 40,689"
+          value={stats ? formatCurrency(stats.available_balance) : '₹ 0.00'}
           description="Total Available balance"
           icon={
             <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -64,7 +116,7 @@ const DashboardPage = () => {
         />
         <KPICard
           title="Number Trades"
-          value="10"
+          value={stats ? stats.number_trades.toString() : '0'}
           description="Today Number of Trades"
           icon={
             <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -76,7 +128,7 @@ const DashboardPage = () => {
         />
         <KPICard
           title="Profit & Loss (P&L)"
-          value="₹ 10,000"
+          value={stats ? formatCurrency(stats.today_pnl) : '₹ 0.00'}
           description="Today Total Profit & Loss"
           icon={
             <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -87,7 +139,7 @@ const DashboardPage = () => {
         />
         <KPICard
           title="Total Balance"
-          value="₹ 50,689"
+          value={stats ? formatCurrency(stats.total_balance) : '₹ 0.00'}
           description="Total Available balance + Profit"
           icon={
             <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -98,7 +150,7 @@ const DashboardPage = () => {
         />
         <KPICard
           title="Weekly P&L"
-          value="₹ 50,689"
+          value={stats ? formatCurrency(stats.weekly_pnl) : '₹ 0.00'}
           description="Weekly P&L"
           icon={
             <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -110,7 +162,7 @@ const DashboardPage = () => {
         />
         <KPICard
           title="Monthly (P&L)"
-          value="₹ 1,00,000"
+          value={stats ? formatCurrency(stats.monthly_pnl) : '₹ 0.00'}
           description="Monthly Profit & Loss"
           icon={
             <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
