@@ -6,6 +6,7 @@ import OrdersPage from './Pages/OrdersPage'
 import PortfolioPage from './Pages/PortfolioPage'
 import StrategiesPage from './Pages/StrategiesPage'
 import BrokerConnectPage from './Pages/BrokerConnectPage'
+import UsersPage from './Pages/UsersPage'
 import ProtectedRoute from './Component/ProtectedRoute'
 import Layout from './Component/Layout'
 import './App.css'
@@ -72,6 +73,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <StrategiesPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <UsersPage />
                 </Layout>
               </ProtectedRoute>
             }

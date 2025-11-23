@@ -139,8 +139,8 @@ async def cancel_order(
         raise HTTPException(status_code=400, detail="Order ID not available")
     
     try:
-        # Cancel via Kite API
-        kite_service.cancel_order(current_user.id, db, order.order_id)
+        # Cancel via Kite API - variety defaults to "regular" for regular orders
+        kite_service.cancel_order(current_user.id, db, variety="regular", order_id=order.order_id)
         
         # Update status in database
         order.status = OrderStatus.CANCELLED

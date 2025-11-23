@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import api from '../services/api'
 import './BrokerConnectPage.css'
 
@@ -7,16 +8,34 @@ interface BrokerStatus {
   message: string
 }
 
+interface LoginUrlResponse {
+  login_url: string
+}
+
 const BrokerConnectPage = () => {
-  const [apiKey, setApiKey] = useState('')
-  const [accessToken, setAccessToken] = useState('')
   const [status, setStatus] = useState<BrokerStatus | null>(null)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [searchParams] = useSearchParams()
 
   useEffect(() => {
     fetchStatus()
-  }, [])
+    
+    // Check for callback status
+    const callbackStatus = searchParams.get('status')
+    const callbackMessage = searchParams.get('message')
+    
+    if (callbackStatus === 'success') {
+      setMessage('Broker connected successfully!')
+      fetchStatus()
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname)
+    } else if (callbackStatus === 'error') {
+      setMessage(callbackMessage || 'Failed to connect broker')
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [searchParams])
 
   const fetchStatus = async () => {
     try {
@@ -27,23 +46,16 @@ const BrokerConnectPage = () => {
     }
   }
 
-  const handleConnect = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleConnect = async () => {
     setLoading(true)
     setMessage('')
 
     try {
-      await api.post('/api/broker/connect', {
-        api_key: apiKey,
-        access_token: accessToken,
-      })
-      setMessage('Broker connected successfully!')
-      setApiKey('')
-      setAccessToken('')
-      fetchStatus()
+      const response = await api.get<LoginUrlResponse>('/api/broker/login-url')
+      // Redirect to Kite login page
+      window.location.href = response.data.login_url
     } catch (error: any) {
-      setMessage(error.response?.data?.detail || 'Failed to connect broker')
-    } finally {
+      setMessage(error.response?.data?.detail || 'Failed to get login URL')
       setLoading(false)
     }
   }
@@ -63,38 +75,27 @@ const BrokerConnectPage = () => {
         </div>
         <div className="connect-section">
           <h2>Connect Kite Account</h2>
-          <form onSubmit={handleConnect} className="connect-form">
+          <div className="connect-form">
             {message && (
               <div className={`message ${message.includes('success') ? 'success' : 'error'}`}>
                 {message}
               </div>
             )}
             <div className="form-group">
-              <label htmlFor="api-key">API Key</label>
-              <input
-                type="text"
-                id="api-key"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                required
-                placeholder="Enter your Kite API Key"
-              />
+              <p className="info-text">
+                Click the button below to connect your Kite account. You will be redirected to Kite's login page.
+                After successful authentication, you will be redirected back to this page.
+              </p>
             </div>
-            <div className="form-group">
-              <label htmlFor="access-token">Access Token</label>
-              <input
-                type="text"
-                id="access-token"
-                value={accessToken}
-                onChange={(e) => setAccessToken(e.target.value)}
-                required
-                placeholder="Enter your Kite Access Token"
-              />
-            </div>
-            <button type="submit" disabled={loading} className="connect-btn">
-              {loading ? 'Connecting...' : 'Connect'}
+            <button 
+              type="button" 
+              onClick={handleConnect} 
+              disabled={loading || (status?.connected === true)} 
+              className="connect-btn"
+            >
+              {loading ? 'Connecting...' : status?.connected ? 'Already Connected' : 'Connect with Kite'}
             </button>
-          </form>
+          </div>
         </div>
       </div>
     </div>

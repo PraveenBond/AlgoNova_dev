@@ -78,6 +78,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </svg>
             <span>Positions</span>
           </Link>
+          <Link to="/users" className={`sidebar-link ${isActive('/users') ? 'active' : ''}`}>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="6" r="3" stroke="currentColor" strokeWidth="2"/>
+              <path d="M3 18C3 14 6 11 10 11C14 11 17 14 17 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            <span>Users</span>
+          </Link>
         </nav>
       </aside>
       <div className="main-wrapper">
