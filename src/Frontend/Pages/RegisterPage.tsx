@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../Component/AuthContext'
 import './RegisterPage.css'
 
@@ -71,9 +71,6 @@ const RegisterPage = () => {
             {loading ? 'Registering...' : 'Register'}
           </button>
         </form>
-        <p className="login-link">
-          Already have an account? <Link to="/login">Login here</Link>
-        </p>
       </div>
     </div>
   )

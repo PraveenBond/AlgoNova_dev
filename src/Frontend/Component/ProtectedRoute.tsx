@@ -1,5 +1,3 @@
-import { Navigate } from 'react-router-dom'
-import { useAuth } from './AuthContext'
 import { ReactNode } from 'react'
 
 interface ProtectedRouteProps {
@@ -7,12 +5,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated } = useAuth()
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
-  }
-
+  // Allow access without authentication for now
   return <>{children}</>
 }
 
