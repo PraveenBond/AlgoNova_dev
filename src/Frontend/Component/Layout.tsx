@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from './AuthContext'
 import './Layout.css'
 
@@ -9,11 +9,9 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout } = useAuth()
-  const navigate = useNavigate()
 
   const handleLogout = () => {
     logout()
-    navigate('/login')
   }
 
   return (
@@ -29,8 +27,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Link to="/broker/connect" className="nav-link">Broker</Link>
           </nav>
           <div className="user-section">
-            <span className="username">{user?.username}</span>
-            <button onClick={handleLogout} className="logout-btn">Logout</button>
+            {user && <span className="username">{user.username}</span>}
+            {user && <button onClick={handleLogout} className="logout-btn">Logout</button>}
           </div>
         </div>
       </header>
