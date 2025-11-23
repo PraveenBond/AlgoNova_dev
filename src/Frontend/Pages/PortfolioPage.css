@@ -1,0 +1,94 @@
+.portfolio-page {
+  padding: 2rem;
+}
+
+.portfolio-page h1 {
+  margin-bottom: 2rem;
+  color: #2c3e50;
+}
+
+.pnl-summary {
+  margin-bottom: 2rem;
+}
+
+.pnl-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.pnl-card h2 {
+  margin-bottom: 1rem;
+  color: #7f8c8d;
+  font-size: 1rem;
+  font-weight: normal;
+}
+
+.pnl-value {
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+
+.pnl-value.positive {
+  color: #27ae60;
+}
+
+.pnl-value.negative {
+  color: #e74c3c;
+}
+
+.positions-section {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.positions-section h2 {
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.positions-table-container {
+  overflow-x: auto;
+}
+
+.positions-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.positions-table th {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #2c3e50;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.positions-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.positions-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.positive {
+  color: #27ae60;
+}
+
+.negative {
+  color: #e74c3c;
+}
+
+.no-positions {
+  text-align: center;
+  padding: 2rem;
+  color: #7f8c8d;
+}
+
