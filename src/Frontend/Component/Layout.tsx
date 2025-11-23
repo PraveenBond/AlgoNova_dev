@@ -30,7 +30,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="layout">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <h1 className="sidebar-logo">board</h1>
+          <div className="logo-container">
+            <img 
+              src="/logo/AlgoNova-Photoroom.png" 
+              alt="AlgoNova" 
+              className="sidebar-logo-img"
+            />
+            <span className="logo-text"></span>
+          </div>
         </div>
         <nav className="sidebar-nav">
           <Link to="/" className={`sidebar-link ${isActive('/') ? 'active' : ''}`}>
@@ -72,19 +79,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <span>Positions</span>
           </Link>
         </nav>
-        <div className="sidebar-footer">
-          <div className="support-section">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M10 2C6 2 3 5 3 9C3 13 6 16 10 16C14 16 17 13 17 9C17 5 14 2 10 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M10 6V10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M10 14H10.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-            <div>
-              <div className="support-title">Get Support</div>
-              <div className="support-text">Need help? feel free to contact us</div>
-            </div>
-          </div>
-        </div>
       </aside>
       <div className="main-wrapper">
         <header className="header">
