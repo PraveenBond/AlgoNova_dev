@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './Component/AuthContext'
+import LoginPage from './Pages/LoginPage'
 import RegisterPage from './Pages/RegisterPage'
 import DashboardPage from './Pages/DashboardPage'
 import OrdersPage from './Pages/OrdersPage'
@@ -7,6 +8,7 @@ import PortfolioPage from './Pages/PortfolioPage'
 import StrategiesPage from './Pages/StrategiesPage'
 import BrokerConnectPage from './Pages/BrokerConnectPage'
 import UsersPage from './Pages/UsersPage'
+import ProfilePage from './Pages/ProfilePage'
 import ProtectedRoute from './Component/ProtectedRoute'
 import Layout from './Component/Layout'
 import './App.css'
@@ -16,6 +18,7 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route
             path="/"
@@ -33,6 +36,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <BrokerConnectPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ProfilePage />
                 </Layout>
               </ProtectedRoute>
             }

@@ -177,6 +177,7 @@ temp/
 *.crt
 secrets/
 .secrets/
+kite_token.json
 
 # Database migrations (if you want to ignore them)
 # migrations/versions/*.py

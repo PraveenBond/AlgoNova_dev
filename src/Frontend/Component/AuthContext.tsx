@@ -38,20 +38,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Check for stored token on mount
     const storedToken = localStorage.getItem('token')
     if (storedToken) {
+      // Check if it's a Kite session
+      const kiteSessionStr = localStorage.getItem('kite_session')
+      if (kiteSessionStr) {
+        try {
+          const kiteSession = JSON.parse(kiteSessionStr)
+          if (kiteSession.kite_authenticated && kiteSession.user) {
+            setToken(storedToken)
+            setUser(kiteSession.user)
+            return
+          }
+        } catch (e) {
+          // Invalid kite session, continue with regular auth
+        }
+      }
+      
+      // Regular authentication
       setToken(storedToken)
-      // Fetch user info
       fetchUserInfo(storedToken)
     }
   }, [])
 
   const fetchUserInfo = async (authToken: string) => {
+    // Skip if it's a Kite token
+    if (authToken.startsWith('kite_')) {
+      return
+    }
+    
     try {
       const userData = await authService.getCurrentUser(authToken)
       setUser(userData)
     } catch (error) {
       console.error('Failed to fetch user info:', error)
-      localStorage.removeItem('token')
-      setToken(null)
+      // Don't remove token if it's a Kite session
+      const kiteSessionStr = localStorage.getItem('kite_session')
+      if (!kiteSessionStr) {
+        localStorage.removeItem('token')
+        setToken(null)
+      }
     }
   }
 
@@ -72,6 +96,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(null)
     setToken(null)
     localStorage.removeItem('token')
+    localStorage.removeItem('kite_session')
   }
 
   const value: AuthContextType = {
