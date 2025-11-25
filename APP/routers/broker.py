@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, HTMLResponse
 from typing import Dict, Any, Optional
 from pydantic import BaseModel
 import logging
@@ -37,10 +37,89 @@ async def get_broker_status() -> Dict[str, Any]:
             "message": f"Error: {str(e)}"
         }
 
+@router.get("/kite-callback")
+async def kite_callback(
+    request_token: str = Query(..., description="Request token from Kite redirect"),
+    status: Optional[str] = Query(None),
+    action: Optional[str] = Query(None),
+    type: Optional[str] = Query(None)
+):
+    """
+    Handle Kite redirect - Extract request_token from URL, generate access_token, store it
+    Returns HTML page that closes popup and notifies parent window
+    """
+    try:
+        logger.info(f"Received Kite callback with request_token: {request_token[:10]}...")
+        
+        kite_service = KiteService()
+        session_data = kite_service.generate_session_from_token(request_token)
+        
+        # Token is now stored automatically
+        logger.info("Access token generated and stored successfully")
+        
+        # Return HTML that closes popup and sends message to parent
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Kite Login Success</title>
+        </head>
+        <body>
+            <script>
+                // Send message to parent window
+                if (window.opener) {{
+                    window.opener.postMessage({{ request_token: '{request_token}', success: true }}, '*');
+                    setTimeout(() => {{
+                        window.close();
+                    }}, 500);
+                }} else {{
+                    // If no opener, redirect to frontend
+                    window.location.href = 'http://localhost:3000/login?kite_success=true';
+                }}
+            </script>
+            <div style="text-align: center; padding: 2rem; font-family: Arial;">
+                <h2>Login Successful!</h2>
+                <p>You can close this window.</p>
+            </div>
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content)
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Error processing Kite callback: {error_msg}")
+        # Return error HTML
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Kite Login Error</title>
+        </head>
+        <body>
+            <script>
+                if (window.opener) {{
+                    window.opener.postMessage({{ error: '{error_msg}', success: false }}, '*');
+                    setTimeout(() => {{
+                        window.close();
+                    }}, 2000);
+                }} else {{
+                    window.location.href = 'http://localhost:3000/login?error={error_msg}';
+                }}
+            </script>
+            <div style="text-align: center; padding: 2rem; font-family: Arial;">
+                <h2 style="color: red;">Login Failed</h2>
+                <p>{error_msg}</p>
+                <p>This window will close automatically.</p>
+            </div>
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content)
+
 @router.get("/process-token")
 async def process_token(
     request_token: str = Query(..., description="Request token from Kite"),
-    redirect: Optional[str] = Query("http://localhost:3000/profile", description="Redirect URL after processing")
+    redirect: Optional[str] = Query("http://localhost:3000/login", description="Redirect URL after processing")
 ) -> RedirectResponse:
     """
     SIMPLE: Extract request_token from URL, generate access_token, store it, redirect to profile
@@ -59,7 +138,7 @@ async def process_token(
         error_msg = str(e)
         logger.error(f"Error processing token: {error_msg}")
         # Redirect to error page or back to connect page
-        error_url = f"http://localhost:3000/broker/connect?error={error_msg}"
+        error_url = f"http://localhost:3000/login?error={error_msg}"
         return RedirectResponse(url=error_url)
 
 @router.post("/set-token")

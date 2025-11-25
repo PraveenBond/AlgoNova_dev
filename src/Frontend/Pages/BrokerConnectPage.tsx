@@ -153,7 +153,7 @@ const BrokerConnectPage = () => {
               <div style={{marginTop: '1rem', padding: '1rem', backgroundColor: '#fff3cd', borderRadius: '4px', fontSize: '0.9rem'}}>
                 <p style={{margin: '0 0 0.5rem 0', fontWeight: 'bold', color: '#856404'}}>⚠️ Important Configuration:</p>
                 <p style={{margin: '0', color: '#856404'}}>
-                  Make sure your Kite app redirect URL is set to: <strong>http://localhost:3000/broker/connect</strong>
+                  Make sure your Kite app redirect URL is set to: <strong>http://localhost:3000/login</strong>
                 </p>
                 <p style={{margin: '0.5rem 0 0 0', fontSize: '0.85rem', color: '#856404'}}>
                   Update it at: <a href="https://kite.trade/apps/" target="_blank" rel="noopener noreferrer" style={{color: '#0066cc'}}>https://kite.trade/apps/</a>

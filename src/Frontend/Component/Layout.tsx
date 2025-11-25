@@ -1,5 +1,5 @@
 import { ReactNode, useState, useEffect, useRef } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from './AuthContext'
 import api from '../services/api'
 import './Layout.css'
@@ -18,6 +18,7 @@ interface KiteProfile {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout } = useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
   const [kiteProfile, setKiteProfile] = useState<KiteProfile | null>(null)
   const [showDropdown, setShowDropdown] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -50,6 +51,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const handleLogout = () => {
     logout()
+    // Clear Kite token if exists
+    try {
+      // Clear any stored Kite tokens
+      localStorage.removeItem('kite_token')
+    } catch (e) {
+      // Ignore errors
+    }
+    navigate('/login')
   }
 
   const getGreeting = () => {

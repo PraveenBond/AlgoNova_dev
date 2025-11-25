@@ -85,11 +85,10 @@ class KiteService:
             raise ValueError("KITE_API_KEY not found in environment variables")
         
         kite = KiteConnect(api_key=self.api_key)
+        # Note: login_url() doesn't accept redirect_url parameter
+        # The redirect URL must be configured in Kite app settings at https://kite.trade/apps/
+        # Configure it to: http://localhost:3000/login (or your frontend login page)
         login_url = kite.login_url()
-        
-        # Note: The redirect URL must be configured in Kite app settings at https://kite.trade/apps/
-        # It should match your frontend URL, e.g., http://localhost:3000/broker/connect
-        # or http://localhost:5173/broker/connect (for Vite)
         
         return login_url
     
