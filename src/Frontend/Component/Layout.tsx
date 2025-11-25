@@ -1,15 +1,52 @@
-import { ReactNode } from 'react'
+import { ReactNode, useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from './AuthContext'
+import api from '../services/api'
 import './Layout.css'
 
 interface LayoutProps {
   children: ReactNode
 }
 
+interface KiteProfile {
+  user_id: string
+  user_name: string
+  user_shortname: string
+  email: string
+}
+
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout } = useAuth()
   const location = useLocation()
+  const [kiteProfile, setKiteProfile] = useState<KiteProfile | null>(null)
+  const [showDropdown, setShowDropdown] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    fetchKiteProfile()
+  }, [])
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const fetchKiteProfile = async () => {
+    try {
+      const response = await api.get('/api/broker/profile')
+      if (response.data.success) {
+        setKiteProfile(response.data.data)
+      }
+    } catch (error) {
+      // Silently fail - user might not be connected to Kite
+      console.log('Kite profile not available')
+    }
+  }
 
   const handleLogout = () => {
     logout()
@@ -78,12 +115,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </svg>
             <span>Positions</span>
           </Link>
-          <Link to="/users" className={`sidebar-link ${isActive('/users') ? 'active' : ''}`}>
+          
+          <Link to="/profile" className={`sidebar-link ${isActive('/profile') ? 'active' : ''}`}>
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <circle cx="10" cy="6" r="3" stroke="currentColor" strokeWidth="2"/>
-              <path d="M3 18C3 14 6 11 10 11C14 11 17 14 17 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <circle cx="10" cy="7" r="3" stroke="currentColor" strokeWidth="2"/>
+              <path d="M5 18C5 14 7 12 10 12C13 12 15 14 15 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
-            <span>Users</span>
+            <span>Kite Profile</span>
           </Link>
         </nav>
       </aside>
@@ -101,11 +139,67 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <path d="M10 14H10.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </button>
-              <div className="user-profile">
-                <div className="profile-avatar">
-                  {user?.username?.charAt(0).toUpperCase() || 'U'}
+              <div className="user-profile-container" ref={dropdownRef}>
+                <div 
+                  className="user-profile" 
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="profile-avatar">
+                    {kiteProfile?.user_shortname?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <span className="profile-name">
+                    {kiteProfile?.user_name || user?.username || 'User'}
+                  </span>
+                  <svg 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 16 16" 
+                    fill="none"
+                    style={{ 
+                      marginLeft: '0.5rem',
+                      transition: 'transform 0.3s',
+                      transform: showDropdown ? 'rotate(180deg)' : 'rotate(0deg)'
+                    }}
+                  >
+                    <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </div>
-                <span className="profile-name">{user?.username || 'User'}</span>
+                {showDropdown && (
+                  <div className="user-dropdown">
+                    <div className="dropdown-header">
+                      <div className="dropdown-avatar">
+                        {kiteProfile?.user_shortname?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
+                      </div>
+                      <div className="dropdown-user-info">
+                        <div className="dropdown-name">
+                          {kiteProfile?.user_name || user?.username || 'User'}
+                        </div>
+                        {kiteProfile?.user_id && (
+                          <div className="dropdown-id">
+                            ID: {kiteProfile.user_id}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="dropdown-divider"></div>
+                    <Link to="/profile" className="dropdown-item" onClick={() => setShowDropdown(false)}>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="5" r="2" stroke="currentColor" strokeWidth="1.5"/>
+                        <path d="M3 14C3 10 5 8 8 8C11 8 13 10 13 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                      </svg>
+                      <span>Kite Profile</span>
+                    </Link>
+                    <button className="dropdown-item logout-item" onClick={handleLogout}>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M6 2H3C2.44772 2 2 2.44772 2 3V13C2 13.5523 2.44772 14 3 14H6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                        <path d="M10 12L14 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M14 8H6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                      </svg>
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

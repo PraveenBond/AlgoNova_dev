@@ -7,6 +7,7 @@ import PortfolioPage from './Pages/PortfolioPage'
 import StrategiesPage from './Pages/StrategiesPage'
 import BrokerConnectPage from './Pages/BrokerConnectPage'
 import UsersPage from './Pages/UsersPage'
+import ProfilePage from './Pages/ProfilePage'
 import ProtectedRoute from './Component/ProtectedRoute'
 import Layout from './Component/Layout'
 import './App.css'
@@ -33,6 +34,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <BrokerConnectPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ProfilePage />
                 </Layout>
               </ProtectedRoute>
             }
