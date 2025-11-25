@@ -138,7 +138,12 @@ const LoginPage = () => {
     <div className="login-page">
       <div className="login-container">
         <div className="login-header">
-          <h1>Algo Trading Platform</h1>
+          <img 
+            src="/logo/AlgoNova-Photoroom.png" 
+            alt="AlgoNova AI Logo" 
+            className="login-logo"
+          />
+          <h1>AlgoNova AI</h1>
           <h2>Welcome Back</h2>
         </div>
 
@@ -207,49 +212,13 @@ const LoginPage = () => {
               )}
             </div>
 
-            <div className="divider">
-              <span>OR</span>
-            </div>
+            
 
-            {/* Regular Login Form */}
-            <form onSubmit={handleSubmit} className="login-form">
-              <h3>Account Login</h3>
-              <div className="form-group">
-                <label htmlFor="username">Username</label>
-                <input
-                  type="text"
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                  autoComplete="username"
-                  placeholder="Enter your username"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="password">Password</label>
-                <input
-                  type="password"
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete="current-password"
-                  placeholder="Enter your password"
-                />
-              </div>
-              <button type="submit" disabled={loading} className="login-btn">
-                {loading ? 'Logging in...' : 'Login'}
-              </button>
-            </form>
+           
           </div>
         )}
 
-        <div className="login-footer">
-          <p>
-            Don't have an account? <Link to="/register">Register here</Link>
-          </p>
-        </div>
+        
       </div>
     </div>
   )
