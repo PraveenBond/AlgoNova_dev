@@ -19,10 +19,11 @@ app.add_middleware(
 )
 
 # Import routers
-from APP.routers import broker
+from APP.routers import broker, fyers
 
 # Include routers
 app.include_router(broker.router, prefix="/api/broker", tags=["broker"])
+app.include_router(fyers.router, prefix="/api/fyers", tags=["fyers"])
 
 @app.get("/")
 async def root():

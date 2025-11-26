@@ -2,7 +2,7 @@
 API Routers
 """
 
-from APP.routers import broker
+from APP.routers import broker, fyers
 
-__all__ = ['broker']
+__all__ = ['broker', 'fyers']
 

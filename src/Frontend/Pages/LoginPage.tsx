@@ -10,6 +10,7 @@ const LoginPage = () => {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [kiteLoading, setKiteLoading] = useState(false)
+  const [fyersLoading, setFyersLoading] = useState(false)
   const [requestToken, setRequestToken] = useState('')
   const [showTokenForm, setShowTokenForm] = useState(false)
   const { login, isAuthenticated } = useAuth()
@@ -88,6 +89,24 @@ const LoginPage = () => {
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to process Kite login')
       setKiteLoading(false)
+    }
+  }
+
+  const handleFyersLogin = async () => {
+    setError('')
+    setFyersLoading(true)
+
+    try {
+      const response = await api.get('/api/fyers/login-url')
+      if (response.data.success && response.data.login_url) {
+        window.location.href = response.data.login_url
+      } else {
+        setError('Failed to get Fyers login URL')
+        setFyersLoading(false)
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Failed to connect to Fyers')
+      setFyersLoading(false)
     }
   }
 
@@ -212,9 +231,26 @@ const LoginPage = () => {
               )}
             </div>
 
+            {/* Fyers Login Option */}
+            <div className="kite-login-section" style={{ marginTop: '1.5rem' }}>
+              <h3>Connect with Fyers</h3>
+              <p className="kite-description">
+                Login with your Fyers account to access trading features
+              </p>
+              <button
+                type="button"
+                onClick={handleFyersLogin}
+                className="kite-login-btn"
+                disabled={fyersLoading}
+                style={{ background: '#0d6efd' }}
+              >
+                {fyersLoading ? 'Opening Fyers Login...' : 'Open Fyers Login'}
+              </button>
+            </div>
+
             
 
-           
+            
           </div>
         )}
 

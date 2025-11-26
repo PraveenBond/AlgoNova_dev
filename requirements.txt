@@ -5,4 +5,5 @@ kiteconnect
 python-multipart
 pydantic
 pydantic-settings
+fyers-apiv3
 

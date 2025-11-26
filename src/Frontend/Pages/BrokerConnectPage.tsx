@@ -36,10 +36,15 @@ const BrokerConnectPage = () => {
     const requestToken = searchParams.get('request_token')
     const action = searchParams.get('action')
     const statusParam = searchParams.get('status')
+    const fyersSuccess = searchParams.get('fyers_success')
     
     if (requestToken) {
       // This is a callback from Kite - process it immediately
       handleKiteCallback(requestToken, action, statusParam)
+    } else if (fyersSuccess === 'true') {
+      // Fyers login completed successfully
+      setMessage('Successfully connected to Fyers!')
+      fetchStatus()
     } else {
       // Normal page load
       fetchStatus()
@@ -95,6 +100,25 @@ const BrokerConnectPage = () => {
     }
   }
 
+  const handleFyersConnect = async () => {
+    setLoading(true)
+    setMessage('')
+
+    try {
+      const response = await api.get<LoginUrlResponse>('/api/fyers/login-url')
+      if (response.data.success && response.data.login_url) {
+        // Redirect to Fyers login page
+        window.location.href = response.data.login_url
+      } else {
+        setMessage('Failed to get Fyers login URL')
+        setLoading(false)
+      }
+    } catch (error: any) {
+      setMessage(error.response?.data?.detail || 'Failed to get Fyers login URL')
+      setLoading(false)
+    }
+  }
+
   const fetchStatus = async () => {
     try {
       const response = await api.get<BrokerStatus>('/api/broker/status')
@@ -138,7 +162,7 @@ const BrokerConnectPage = () => {
           {status && <p className="status-message">{status.message}</p>}
         </div>
         <div className="connect-section">
-          <h2>Connect Kite Account</h2>
+          <h2>Connect Broker Accounts</h2>
           <div className="connect-form">
             {message && (
               <div className={`message ${message.includes('success') ? 'success' : 'error'}`}>
@@ -167,6 +191,16 @@ const BrokerConnectPage = () => {
               className="connect-btn"
             >
               {loading ? 'Connecting...' : status?.connected ? 'Already Connected' : 'Connect with Kite'}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleFyersConnect}
+              disabled={loading}
+              className="connect-btn"
+              style={{ marginTop: '0.75rem', backgroundColor: '#0d6efd' }}
+            >
+              {loading ? 'Connecting to Fyers...' : 'Connect with Fyers'}
             </button>
             
             <div style={{marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #ddd'}}>
