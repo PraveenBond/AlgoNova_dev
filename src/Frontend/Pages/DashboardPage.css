@@ -1,10 +1,10 @@
 .dashboard-page {
-  padding: 2rem;
+  padding: 1.5rem 2rem 2rem;
   background: transparent;
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.25rem;
   font-family: 'Inter', sans-serif;
   overflow-x: hidden;
   animation: fadeIn 0.5s ease-out;
@@ -15,8 +15,8 @@
   display: flex;
   gap: 2.5rem;
   border-bottom: 2px solid var(--border-subtle);
-  margin-bottom: 1rem;
-  padding: 0 0.5rem;
+  margin-bottom: 0.25rem;
+  padding: 0.25rem 0.5rem 0;
 }
 
 .nav-tab {
@@ -67,6 +67,7 @@
   scroll-behavior: smooth;
   padding-left: 4px;
   padding-right: 4px;
+  margin-top: -0.25rem;
 }
 
 /* Custom scrollbar for market overview */
