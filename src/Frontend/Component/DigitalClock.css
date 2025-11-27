@@ -1,0 +1,29 @@
+.digital-clock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #2c3e50;
+    font-family: inherit;
+    user-select: none;
+}
+
+.digital-clock .time {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 0.5px;
+}
+
+.digital-clock .date {
+    font-size: 0.75rem;
+    color: #7f8c8d;
+    margin-top: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}

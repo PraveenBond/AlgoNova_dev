@@ -4,6 +4,8 @@ import { useAuth } from './AuthContext'
 import api from '../services/api'
 import './Layout.css'
 
+import DigitalClock from './DigitalClock'
+
 interface LayoutProps {
   children: ReactNode
 }
@@ -61,12 +63,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     navigate('/login')
   }
 
-  const getGreeting = () => {
-    const hour = new Date().getHours()
-    if (hour < 12) return 'Good morning'
-    if (hour < 17) return 'Good afternoon'
-    return 'Good evening'
-  }
 
   const isActive = (path: string) => {
     return location.pathname === path
@@ -137,8 +133,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <div className="main-wrapper">
         <header className="header">
           <div className="header-top">
+            <div style={{ flex: 1 }}></div>
             <div className="header-center">
-              <span className="greeting">{getGreeting()}, {user?.username || 'User'}! 👋</span>
+              <DigitalClock />
             </div>
             <div className="header-right">
               <button className="header-icon-btn">
