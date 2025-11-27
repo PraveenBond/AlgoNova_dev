@@ -243,6 +243,7 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -337,7 +338,6 @@
 
 .main-content {
   flex: 1;
-  padding: 2rem;
   background-color: #f8f9fa;
   overflow-y: auto;
 }

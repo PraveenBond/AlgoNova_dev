@@ -78,6 +78,8 @@ const ProfilePage = () => {
   const [activeBroker, setActiveBroker] = useState<BrokerMode>('none')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isFyersLoggedIn, setIsFyersLoggedIn] = useState(false)
+  const [isKiteLoggedIn, setIsKiteLoggedIn] = useState(false)
   const [searchParams] = useSearchParams()
 
   useEffect(() => {
@@ -85,14 +87,15 @@ const ProfilePage = () => {
     const fyersSessionStr = localStorage.getItem('fyers_session')
     const kiteSessionStr = localStorage.getItem('kite_session')
 
+    let fyersAuth = false
+    let kiteAuth = false
+
     if (fyersSessionStr) {
       try {
         const fyersSession = JSON.parse(fyersSessionStr)
         if (fyersSession.fyers_authenticated) {
-          setActiveBroker('fyers')
+          fyersAuth = true
           setFyersProfile(normalizeFyersProfile(fyersSession.profile))
-          fetchFyersProfile(false)
-          return
         }
       } catch (e) {
         console.warn('Invalid Fyers session cache', e)
@@ -100,10 +103,34 @@ const ProfilePage = () => {
     }
 
     if (kiteSessionStr) {
-      setActiveBroker('kite')
+      kiteAuth = true
     }
 
-    fetchKiteProfile(requestToken || undefined)
+    setIsFyersLoggedIn(fyersAuth)
+    setIsKiteLoggedIn(kiteAuth)
+
+    // Determine which broker to show initially
+    if (fyersAuth && !kiteAuth) {
+      setActiveBroker('fyers')
+      fetchFyersProfile(false)
+    } else if (kiteAuth && !fyersAuth) {
+      setActiveBroker('kite')
+      fetchKiteProfile(requestToken || undefined)
+    } else if (fyersAuth && kiteAuth) {
+      // If both are logged in, default to Fyers or keep current if set
+      setActiveBroker((prev) => (prev === 'none' ? 'fyers' : prev))
+      fetchFyersProfile(false)
+      fetchKiteProfile(undefined)
+    } else {
+      // Neither logged in, but maybe trying to login to Kite via callback
+      if (requestToken) {
+        setActiveBroker('kite')
+        fetchKiteProfile(requestToken)
+      } else {
+        setLoading(false)
+      }
+    }
+
     if (requestToken) {
       window.history.replaceState({}, '', window.location.pathname)
     }
@@ -117,7 +144,11 @@ const ProfilePage = () => {
       const response = await api.get<KiteProfileResponse>('/api/broker/profile', { params })
       if (response.data.success) {
         setKiteProfile(response.data.data)
-        setActiveBroker((prev) => (prev === 'none' ? 'kite' : prev))
+        setIsKiteLoggedIn(true)
+        setActiveBroker((prev) => {
+          if (prev === 'fyers') return prev;
+          return 'kite';
+        })
       } else {
         setError('Failed to fetch profile')
       }
@@ -138,7 +169,8 @@ const ProfilePage = () => {
       })
       if (response.data.success) {
         setFyersProfile(normalizeFyersProfile(response.data.data))
-        setActiveBroker('fyers')
+        setIsFyersLoggedIn(true)
+        setActiveBroker((prev) => (prev === 'none' ? 'fyers' : prev))
       }
     } catch (err: any) {
       console.error('Failed to fetch Fyers profile:', err)
@@ -301,36 +333,44 @@ const ProfilePage = () => {
     }
   }
 
+  const getTitle = () => {
+    if (activeBroker === 'fyers') return 'Fyers Profile'
+    if (activeBroker === 'kite') return 'Zerodha Profile'
+    return 'Profile'
+  }
+
   return (
     <div className="profile-page">
       <div className="profile-container">
         <div className="profile-header">
-          <h1>{activeBroker === 'fyers' ? 'Fyers Profile' : 'Profile'}</h1>
+          <h1>{getTitle()}</h1>
           <div className="profile-actions">
-            <div className="broker-toggle">
-              <button
-                className={activeBroker === 'fyers' ? 'active' : ''}
-                onClick={() => {
-                  setActiveBroker('fyers')
-                  if (!fyersProfile) {
-                    fetchFyersProfile(false)
-                  }
-                }}
-              >
-                FYERS
-              </button>
-              <button
-                className={activeBroker === 'kite' ? 'active' : ''}
-                onClick={() => {
-                  setActiveBroker('kite')
-                  if (!kiteProfile) {
-                    fetchKiteProfile()
-                  }
-                }}
-              >
-                ZERODHA
-              </button>
-            </div>
+            {isFyersLoggedIn && isKiteLoggedIn && (
+              <div className="broker-toggle">
+                <button
+                  className={activeBroker === 'fyers' ? 'active' : ''}
+                  onClick={() => {
+                    setActiveBroker('fyers')
+                    if (!fyersProfile) {
+                      fetchFyersProfile(false)
+                    }
+                  }}
+                >
+                  FYERS
+                </button>
+                <button
+                  className={activeBroker === 'kite' ? 'active' : ''}
+                  onClick={() => {
+                    setActiveBroker('kite')
+                    if (!kiteProfile) {
+                      fetchKiteProfile()
+                    }
+                  }}
+                >
+                  ZERODHA
+                </button>
+              </div>
+            )}
             <button onClick={handleRefresh} className="refresh-btn">
               Refresh
             </button>
