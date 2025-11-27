@@ -75,6 +75,13 @@ const getNextThursdays = (count: number = 5) => {
   return dates
 }
 
+type Category = 'Indices' | 'Commodities'
+
+const CATEGORY_TO_QUERY: Record<Category, string> = {
+  Indices: 'Indexes',
+  Commodities: 'Commodities',
+}
+
 const OptionChainPage = () => {
   const [symbols, setSymbols] = useState<any[]>([])
   const [symbol, setSymbol] = useState('')
@@ -85,6 +92,7 @@ const OptionChainPage = () => {
   const [symbolError, setSymbolError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [response, setResponse] = useState<OptionChainApiResponse | null>(null)
+  const [category, setCategory] = useState<Category>('Indices')
 
   const expiryDates = useMemo(() => getNextThursdays(8), [])
 
@@ -92,28 +100,39 @@ const OptionChainPage = () => {
   const lastUpdated =
     response?.data?.timestamp || response?.data?.ts || response?.data?.last_updated || ''
 
-  useEffect(() => {
-    fetchSymbols()
-  }, [])
+  const fetchSymbols = useCallback(
+    async (targetCategory: Category) => {
+      try {
+        setLoadingSymbols(true)
+        setSymbolError(null)
+        setSymbols([])
+        setSymbol('')
+        setResponse(null)
 
-  const fetchSymbols = async () => {
-    try {
-      setLoadingSymbols(true)
-      setSymbolError(null)
-      const res = await api.get('/api/master/dropdown')
-      if (res.data.success && Array.isArray(res.data.data)) {
-        setSymbols(res.data.data)
-        if (res.data.data.length > 0) {
+        const typeParam = CATEGORY_TO_QUERY[targetCategory]
+        const res = await api.get('/api/master/dropdown', {
+          params: { type: typeParam },
+        })
+
+        if (res.data.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
+          setSymbols(res.data.data)
           setSymbol(res.data.data[0].value)
+        } else {
+          setSymbolError('No symbols available for this category')
         }
+      } catch (err: any) {
+        console.error('Failed to fetch symbols:', err)
+        setSymbolError(err?.response?.data?.detail || err?.message || 'Failed to load symbols')
+      } finally {
+        setLoadingSymbols(false)
       }
-    } catch (err: any) {
-      console.error('Failed to fetch symbols:', err)
-      setSymbolError(err?.response?.data?.detail || err?.message || 'Failed to load symbols')
-    } finally {
-      setLoadingSymbols(false)
-    }
-  }
+    },
+    []
+  )
+
+  useEffect(() => {
+    fetchSymbols(category)
+  }, [category, fetchSymbols])
 
   const fetchOptionChain = useCallback(
     async (event?: FormEvent) => {
@@ -166,6 +185,25 @@ const OptionChainPage = () => {
           <h1>Option Chain</h1>
           <p>View live strikes powered by Fyers</p>
         </div>
+
+        {/* Tab Navigation */}
+        <div className="option-chain-tabs">
+          <button
+            type="button"
+            className={`tab-button ${category === 'Indices' ? 'active' : ''}`}
+            onClick={() => setCategory('Indices')}
+          >
+            Indices
+          </button>
+          <button
+            type="button"
+            className={`tab-button ${category === 'Commodities' ? 'active' : ''}`}
+            onClick={() => setCategory('Commodities')}
+          >
+            Commodities
+          </button>
+        </div>
+
         <form className="option-chain-form" onSubmit={fetchOptionChain}>
           <label>
             Symbol
@@ -208,18 +246,8 @@ const OptionChainPage = () => {
               ))}
             </select>
           </label>
-          <label>
-            Strike Count
-            <input
-              type="number"
-              min={1}
-              max={50}
-              value={strikecount}
-              onChange={(e) => setStrikecount(Number(e.target.value))}
-              required
-            />
-          </label>
-          <button type="submit" disabled={loading || loadingSymbols}>
+
+          <button type="submit" disabled={loading || loadingSymbols || !symbol}>
             {loading ? 'Loading...' : 'Refresh'}
           </button>
         </form>
@@ -233,30 +261,6 @@ const OptionChainPage = () => {
           {error}
         </div>
       )}
-
-      <div className="option-chain-meta">
-        <div>
-          <span className="label">Status</span>
-          <strong
-            style={{
-              color:
-                response?.success
-                  ? 'var(--color-bullish)'
-                  : 'var(--text-muted)',
-            }}
-          >
-            {response?.success ? 'Connected' : '---'}
-          </strong>
-        </div>
-        <div>
-          <span className="label">Rows</span>
-          <strong>{rows.length}</strong>
-        </div>
-        <div>
-          <span className="label">Last Updated</span>
-          <strong>{lastUpdated || '---'}</strong>
-        </div>
-      </div>
 
       <div className="option-chain-table-wrapper">
         {rows.length === 0 ? (
