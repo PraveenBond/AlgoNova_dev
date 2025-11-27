@@ -9,6 +9,7 @@ import StrategiesPage from './Pages/StrategiesPage'
 import BrokerConnectPage from './Pages/BrokerConnectPage'
 import UsersPage from './Pages/UsersPage'
 import ProfilePage from './Pages/ProfilePage'
+import OptionChainPage from './Pages/OptionChainPage'
 import ProtectedRoute from './Component/ProtectedRoute'
 import Layout from './Component/Layout'
 import './App.css'
@@ -86,6 +87,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <StrategiesPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/option-chain"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <OptionChainPage />
                 </Layout>
               </ProtectedRoute>
             }

@@ -1,10 +1,17 @@
 .portfolio-page {
   padding: 2rem;
+  animation: fadeIn 0.5s ease-out;
 }
 
 .portfolio-page h1 {
   margin-bottom: 2rem;
-  color: #2c3e50;
+  color: var(--text-primary);
+  font-size: 2rem;
+  font-weight: 700;
+  background: var(--gradient-primary);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .pnl-summary {
@@ -12,47 +19,89 @@
 }
 
 .pnl-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: var(--surface-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 2.5rem;
+  border-radius: 20px;
+  border: 1px solid var(--border-medium);
+  box-shadow: var(--shadow-lg);
   text-align: center;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.pnl-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gradient-primary);
+}
+
+.pnl-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
 }
 
 .pnl-card h2 {
-  margin-bottom: 1rem;
-  color: #7f8c8d;
-  font-size: 1rem;
-  font-weight: normal;
+  margin-bottom: 1.5rem;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .pnl-value {
-  font-size: 2.5rem;
-  font-weight: bold;
+  font-size: 3.5rem;
+  font-weight: 900;
+  letter-spacing: -1px;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .pnl-value.positive {
-  color: #27ae60;
+  background: var(--gradient-bullish);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .pnl-value.negative {
-  color: #e74c3c;
+  background: var(--gradient-bearish);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .positions-section {
-  background: white;
+  background: var(--surface-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  border: 1px solid var(--border-medium);
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s ease;
+}
+
+.positions-section:hover {
+  box-shadow: var(--shadow-lg);
 }
 
 .positions-section h2 {
-  margin-bottom: 1rem;
-  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 700;
 }
 
 .positions-table-container {
   overflow-x: auto;
+  border-radius: 12px;
 }
 
 .positions-table {
@@ -61,34 +110,46 @@
 }
 
 .positions-table th {
-  background-color: #f8f9fa;
-  padding: 1rem;
+  background: var(--surface-elevated);
+  padding: 1.25rem 1.5rem;
   text-align: left;
-  font-weight: 600;
-  color: #2c3e50;
-  border-bottom: 2px solid #dee2e6;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 2px solid var(--border-subtle);
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
 }
 
 .positions-table td {
-  padding: 1rem;
-  border-bottom: 1px solid #dee2e6;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.positions-table tbody tr {
+  transition: all 0.3s ease;
 }
 
 .positions-table tbody tr:hover {
-  background-color: #f8f9fa;
+  background: var(--surface-elevated);
+  transform: scale(1.01);
 }
 
 .positive {
-  color: #27ae60;
+  color: var(--color-bullish);
+  font-weight: 700;
 }
 
 .negative {
-  color: #e74c3c;
+  color: var(--color-bearish);
+  font-weight: 700;
 }
 
 .no-positions {
   text-align: center;
-  padding: 2rem;
-  color: #7f8c8d;
+  padding: 3rem;
+  color: var(--text-muted);
+  font-size: 1.1rem;
 }
-
