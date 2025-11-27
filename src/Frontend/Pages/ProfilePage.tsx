@@ -171,13 +171,13 @@ const ProfilePage = () => {
                 <p><strong>Note:</strong> No valid access token found. You need to authenticate with Kite first.</p>
                 <p>To fix this:</p>
                 <ol>
-                  <li>Go to <a href="/broker/connect" style={{color: '#3498db'}}>Broker Connect</a> page</li>
+                  <li>Go to <a href="/broker/connect" style={{ color: '#3498db' }}>Broker Connect</a> page</li>
                   <li>Click "Connect with Kite" button</li>
                   <li>Login with your Zerodha credentials</li>
                   <li>After successful login, the access token will be stored automatically</li>
                   <li>You can then access your profile without logging in again (token valid for the day)</li>
                 </ol>
-                <p style={{marginTop: '1rem', fontSize: '0.9rem', color: '#666'}}>
+                <p style={{ marginTop: '1rem', fontSize: '0.9rem', color: '#666' }}>
                   <strong>Alternative:</strong> If you have a request token, you can also update KITE_REQUEST_TOKEN in .env file and restart the server.
                 </p>
               </div>
@@ -203,7 +203,7 @@ const ProfilePage = () => {
     if (!kiteProfile) {
       return (
         <div className="no-data">
-          No Kite profile cached. Connect via the Broker page to pull your Zerodha details.
+          No Profile cached. Connect via the Broker page to pull your Zerodha details.
         </div>
       )
     }
@@ -305,7 +305,7 @@ const ProfilePage = () => {
     <div className="profile-page">
       <div className="profile-container">
         <div className="profile-header">
-          <h1>{activeBroker === 'fyers' ? 'Fyers Profile' : 'Kite Profile'}</h1>
+          <h1>{activeBroker === 'fyers' ? 'Fyers Profile' : 'Profile'}</h1>
           <div className="profile-actions">
             <div className="broker-toggle">
               <button

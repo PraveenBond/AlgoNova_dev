@@ -21,9 +21,9 @@ const buildFyersUser = (profilePayload: any) => {
     typeof rawId === 'number' && Number.isFinite(rawId)
       ? rawId
       : (() => {
-          const parsed = parseInt(String(rawId).replace(/\D/g, ''), 10)
-          return Number.isFinite(parsed) ? parsed : Date.now()
-        })()
+        const parsed = parseInt(String(rawId).replace(/\D/g, ''), 10)
+        return Number.isFinite(parsed) ? parsed : Date.now()
+      })()
 
   return {
     id: numericId,
@@ -56,7 +56,7 @@ const LoginPage = () => {
   useEffect(() => {
     const urlToken = searchParams.get('request_token')
     const error = searchParams.get('error')
-    
+
     // If we have request_token in URL, extract it and show form
     if (urlToken) {
       setRequestToken(urlToken)
@@ -72,20 +72,20 @@ const LoginPage = () => {
   const handleKiteCallback = async (requestToken: string) => {
     setKiteLoading(true)
     setError('')
-    
+
     try {
       // Call backend to process request_token and generate access_token
       const response = await api.get('/api/broker/callback', {
-        params: { 
+        params: {
           request_token: requestToken,
           status: searchParams.get('status'),
           action: searchParams.get('action')
         }
       })
-      
+
       if (response.data.success) {
         // Token stored automatically by backend
-        // Create a simple session for the app using Kite profile
+        // Create a simple session for the app using rofile
         const profile = response.data.data?.profile
         if (profile) {
           // Store Kite session info
@@ -100,12 +100,12 @@ const LoginPage = () => {
           }
           localStorage.setItem('token', kiteSession.token)
           localStorage.setItem('kite_session', JSON.stringify(kiteSession))
-          
+
           // Reload to update auth context
           window.location.href = '/'
           return
         }
-        
+
         // Fallback: just navigate
         setTimeout(() => {
           navigate('/')
@@ -221,7 +221,7 @@ const LoginPage = () => {
 
   const handleKiteLogin = async () => {
     setError('')
-    
+
     try {
       const response = await api.get('/api/broker/login-url')
       if (response.data.success && response.data.login_url) {
@@ -243,7 +243,7 @@ const LoginPage = () => {
       setError('Please enter a request token')
       return
     }
-    
+
     await handleKiteCallback(requestToken.trim())
   }
 
@@ -251,9 +251,9 @@ const LoginPage = () => {
     <div className="login-page">
       <div className="login-container">
         <div className="login-header">
-          <img 
-            src="/logo/AlgoNova-Photoroom.png" 
-            alt="AlgoNova AI Logo" 
+          <img
+            src="/logo/AlgoNova-Photoroom.png"
+            alt="AlgoNova AI Logo"
             className="login-logo"
           />
           <h1>AlgoNova AI</h1>
@@ -261,7 +261,7 @@ const LoginPage = () => {
         </div>
 
         {error && <div className="error-message">{error}</div>}
-        
+
         {kiteLoading && (
           <div className="kite-loading-message">
             <div className="loading-spinner-small"></div>
@@ -277,7 +277,7 @@ const LoginPage = () => {
               <p className="kite-description">
                 Login with your Zerodha Kite account to access trading features
               </p>
-              
+
               {!showTokenForm ? (
                 <button
                   type="button"
@@ -342,13 +342,13 @@ const LoginPage = () => {
               </button>
             </div>
 
-            
 
-            
+
+
           </div>
         )}
 
-        
+
       </div>
     </div>
   )
