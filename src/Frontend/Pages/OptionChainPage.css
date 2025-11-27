@@ -188,61 +188,149 @@
 .option-chain-table-wrapper {
   border-radius: 16px;
   border: 1px solid var(--border-subtle);
-  overflow: hidden;
+  overflow: auto;
   background: var(--surface-card);
   backdrop-filter: blur(12px);
   box-shadow: var(--shadow-lg);
+  max-height: 70vh;
 }
 
 .option-chain-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
+  font-size: 0.9rem;
 }
 
 .option-chain-table th,
 .option-chain-table td {
-  padding: 1rem 1.5rem;
+  padding: 0.85rem 1rem;
   text-align: right;
-  border-bottom: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  white-space: nowrap;
 }
 
-.option-chain-table th {
-  background: rgba(15, 23, 42, 0.8);
+/* Main Headers (CALL, Strike, PUT) */
+.option-chain-table .call-header,
+.option-chain-table .put-header,
+.option-chain-table .strike-header {
+  background: rgba(15, 23, 42, 0.95);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  padding: 1rem;
+  border-bottom: 2px solid var(--border-medium);
+  position: sticky;
+  top: 0;
+  z-index: 12;
+}
+
+.option-chain-table .call-header {
+  color: #10b981;
+  text-align: left;
+}
+
+.option-chain-table .put-header {
+  color: #ef4444;
+  text-align: right;
+}
+
+.option-chain-table .strike-header {
+  color: var(--text-primary);
+  text-align: center;
+  background: rgba(59, 130, 246, 0.15);
+}
+
+/* Sub Headers (Column Names) */
+.option-chain-table .sub-header th {
+  background: rgba(15, 23, 42, 0.9);
   font-weight: 600;
   text-transform: uppercase;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   letter-spacing: 0.05em;
   color: var(--text-muted);
   position: sticky;
-  top: 0;
+  top: 52px;
   backdrop-filter: blur(4px);
-  z-index: 10;
+  z-index: 11;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-medium);
 }
 
-.option-chain-table td:first-child,
-.option-chain-table th:first-child {
-  text-align: left;
-  position: sticky;
-  left: 0;
-  background: inherit;
-  z-index: 11;
+/* Strike column in sub-header */
+.option-chain-table .sub-header th:nth-child(5) {
+  text-align: center;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Data Cells */
+.option-chain-table td {
+  color: var(--text-secondary);
+  background: var(--surface-card);
 }
 
 /* Strike Price Column */
-.option-chain-table td:first-child {
+.option-chain-table .strike-cell {
   font-weight: 700;
   color: var(--text-primary);
-  background: var(--surface-elevated);
+  text-align: center;
+  background: rgba(30, 41, 59, 0.5);
+  font-size: 0.95rem;
+  border-left: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
 }
 
+/* LTP Cell with inline change */
+.option-chain-table .ltp-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-end;
+}
+
+.option-chain-table .ltp-value {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.option-chain-table .ltp-change {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Color Coding */
+.positive-change {
+  color: #10b981 !important;
+}
+
+.negative-change {
+  color: #ef4444 !important;
+}
+
+/* ATM Row Highlighting */
+.option-chain-table .atm-row {
+  background: rgba(59, 130, 246, 0.08);
+  border-top: 1px solid rgba(59, 130, 246, 0.3);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.option-chain-table .atm-row .strike-cell {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+/* Row Hover Effect */
 .option-chain-table tbody tr {
   transition: background-color 0.15s ease;
 }
 
 .option-chain-table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .option-chain-table tbody tr:last-child td {

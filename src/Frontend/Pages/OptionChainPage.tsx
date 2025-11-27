@@ -13,6 +13,42 @@ interface OptionChainRow {
   put?: Record<string, any> | null
 }
 
+// Utility function to format numbers with K (thousands) and L (lakhs) suffixes
+const formatNumber = (value: any): string => {
+  if (value === null || value === undefined || value === '-') return '-'
+  const num = typeof value === 'string' ? parseFloat(value) : value
+  if (isNaN(num)) return '-'
+
+  // Format in lakhs (Indian numbering system)
+  if (num >= 100000) {
+    return `${(num / 100000).toFixed(2)} L`
+  }
+  // Format in thousands
+  if (num >= 1000) {
+    return `${(num / 1000).toFixed(2)} K`
+  }
+  return num.toFixed(2)
+}
+
+// Utility function to format percentage changes
+const formatChange = (value: any): string => {
+  if (value === null || value === undefined || value === '-') return '-'
+  const num = typeof value === 'string' ? parseFloat(value) : value
+  if (isNaN(num)) return '-'
+
+  const sign = num >= 0 ? '+' : ''
+  return `${sign}${num.toFixed(2)}%`
+}
+
+// Utility function to get color class based on value
+const getChangeColor = (value: any): string => {
+  if (value === null || value === undefined || value === '-') return ''
+  const num = typeof value === 'string' ? parseFloat(value) : value
+  if (isNaN(num)) return ''
+
+  return num >= 0 ? 'positive-change' : 'negative-change'
+}
+
 const deriveRows = (payload: any): OptionChainRow[] => {
   if (!payload) {
     return []
@@ -281,27 +317,60 @@ const OptionChainPage = () => {
           <table className="option-chain-table">
             <thead>
               <tr>
+                <th colSpan={4} className="call-header">CALL</th>
+                <th className="strike-header">Strike</th>
+                <th colSpan={4} className="put-header">PUT</th>
+              </tr>
+              <tr className="sub-header">
+                <th>Volume</th>
+                <th>OI Chng (%)</th>
+                <th>OI</th>
+                <th>LTP (LTP Chng%)</th>
                 <th>Strike</th>
-                <th>Call LTP</th>
-                <th>Call IV</th>
-                <th>Call OI</th>
-                <th>Put LTP</th>
-                <th>Put IV</th>
-                <th>Put OI</th>
+                <th>LTP (LTP Chng%)</th>
+                <th>OI</th>
+                <th>OI Chng (%)</th>
+                <th>Volume</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((row, idx) => (
-                <tr key={`${row.strikePrice}-${idx}`}>
-                  <td>{row.strikePrice}</td>
-                  <td style={{ color: 'var(--color-bullish)' }}>{row.call?.ltp ?? '-'}</td>
-                  <td>{row.call?.iv ?? '-'}</td>
-                  <td>{row.call?.oi ?? row.call?.open_interest ?? '-'}</td>
-                  <td style={{ color: 'var(--color-bearish)' }}>{row.put?.ltp ?? '-'}</td>
-                  <td>{row.put?.iv ?? '-'}</td>
-                  <td>{row.put?.oi ?? row.put?.open_interest ?? '-'}</td>
-                </tr>
-              ))}
+              {rows.map((row, idx) => {
+                // Determine if this is close to ATM (you can adjust logic based on actual spot price)
+                const isATM = idx === Math.floor(rows.length / 2)
+
+                return (
+                  <tr key={`${row.strikePrice}-${idx}`} className={isATM ? 'atm-row' : ''}>
+                    {/* CALL side */}
+                    <td>{formatNumber(row.call?.volume ?? row.call?.vol ?? '-')}</td>
+                    <td className={getChangeColor(row.call?.oi_change_pct ?? row.call?.oi_change)}>
+                      {formatChange(row.call?.oi_change_pct ?? row.call?.oi_change ?? '-')}
+                    </td>
+                    <td>{formatNumber(row.call?.oi ?? row.call?.open_interest ?? '-')}</td>
+                    <td className="ltp-cell">
+                      <span className="ltp-value">{row.call?.ltp ?? '-'}</span>
+                      <span className={`ltp-change ${getChangeColor(row.call?.ltp_change_pct ?? row.call?.change_pct)}`}>
+                        ({formatChange(row.call?.ltp_change_pct ?? row.call?.change_pct ?? '-')})
+                      </span>
+                    </td>
+
+                    {/* Strike Price */}
+                    <td className="strike-cell">{row.strikePrice}</td>
+
+                    {/* PUT side */}
+                    <td className="ltp-cell">
+                      <span className="ltp-value">{row.put?.ltp ?? '-'}</span>
+                      <span className={`ltp-change ${getChangeColor(row.put?.ltp_change_pct ?? row.put?.change_pct)}`}>
+                        ({formatChange(row.put?.ltp_change_pct ?? row.put?.change_pct ?? '-')})
+                      </span>
+                    </td>
+                    <td>{formatNumber(row.put?.oi ?? row.put?.open_interest ?? '-')}</td>
+                    <td className={getChangeColor(row.put?.oi_change_pct ?? row.put?.oi_change)}>
+                      {formatChange(row.put?.oi_change_pct ?? row.put?.oi_change ?? '-')}
+                    </td>
+                    <td>{formatNumber(row.put?.volume ?? row.put?.vol ?? '-')}</td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         )}
