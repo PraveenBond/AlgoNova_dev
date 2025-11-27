@@ -1,254 +1,301 @@
-import { useState, useEffect } from 'react'
-import { Area, Bar, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts'
-import api from '../services/api'
+import { useState } from 'react'
 import './DashboardPage.css'
 
-interface DashboardStats {
-  available_balance: number
-  number_trades: number
-  today_pnl: number
-  total_balance: number
-  weekly_pnl: number
-  monthly_pnl: number
-}
-
-interface KPICardProps {
-  title: string
+interface MarketIndex {
+  name: string
   value: string
-  description: string
-  icon: React.ReactNode
-  highlighted?: boolean
+  change: string
+  percentChange: string
+  isPositive: boolean
+  gainers: number
+  losers: number
+  neutral: number
+  chartData: number[] // Mock data for sparkline
 }
 
-const KPICard: React.FC<KPICardProps> = ({ title, value, description, icon, highlighted }) => {
+interface BuildUpItem {
+  name: string
+  prevClose: string
+  ltp: string
+  changePercent: string
+  newOI: string
+  oldOI: string
+  oiChange: string
+  isPositive: boolean
+}
+
+const marketIndices: MarketIndex[] = [
+  {
+    name: 'NIFTY',
+    value: '26,215.55',
+    change: '10.25',
+    percentChange: '0.04%',
+    isPositive: true,
+    gainers: 23,
+    losers: 26,
+    neutral: 1,
+    chartData: [26200, 26210, 26205, 26220, 26215, 26230, 26225, 26215]
+  },
+  {
+    name: 'BANKNIFTY',
+    value: '59,737.30',
+    change: '209.25',
+    percentChange: '0.35%',
+    isPositive: true,
+    gainers: 5,
+    losers: 7,
+    neutral: 0,
+    chartData: [59500, 59600, 59550, 59700, 59650, 59750, 59737]
+  },
+  {
+    name: 'FINNIFTY',
+    value: '27,946.20',
+    change: '146.70',
+    percentChange: '0.53%',
+    isPositive: true,
+    gainers: 13,
+    losers: 6,
+    neutral: 0,
+    chartData: [27800, 27850, 27900, 27880, 27920, 27950, 27946]
+  },
+  {
+    name: 'SENSEX',
+    value: '85,150.25',
+    change: '250.50',
+    percentChange: '0.30%',
+    isPositive: true,
+    gainers: 20,
+    losers: 10,
+    neutral: 0,
+    chartData: [85000, 85100, 85050, 85200, 85150]
+  },
+  {
+    name: 'MIDCPNIFTY',
+    value: '12,150.75',
+    change: '-45.20',
+    percentChange: '-0.37%',
+    isPositive: false,
+    gainers: 15,
+    losers: 35,
+    neutral: 0,
+    chartData: [12200, 12180, 12190, 12160, 12150]
+  },
+  {
+    name: 'BANKEX',
+    value: '54,300.10',
+    change: '120.40',
+    percentChange: '0.22%',
+    isPositive: true,
+    gainers: 8,
+    losers: 2,
+    neutral: 0,
+    chartData: [54200, 54250, 54220, 54300, 54300]
+  }
+]
+
+const commodityIndices: MarketIndex[] = [
+  {
+    name: 'CRUDEOIL',
+    value: '6,450.00',
+    change: '55.00',
+    percentChange: '0.86%',
+    isPositive: true,
+    gainers: 0,
+    losers: 0,
+    neutral: 0,
+    chartData: [6400, 6420, 6410, 6440, 6450]
+  },
+  {
+    name: 'NATURALGAS',
+    value: '245.50',
+    change: '-2.10',
+    percentChange: '-0.85%',
+    isPositive: false,
+    gainers: 0,
+    losers: 0,
+    neutral: 0,
+    chartData: [250, 248, 249, 246, 245]
+  },
+  {
+    name: 'GOLD',
+    value: '72,500.00',
+    change: '350.00',
+    percentChange: '0.48%',
+    isPositive: true,
+    gainers: 0,
+    losers: 0,
+    neutral: 0,
+    chartData: [72200, 72300, 72250, 72400, 72500]
+  },
+  {
+    name: 'SILVER',
+    value: '84,200.00',
+    change: '600.00',
+    percentChange: '0.72%',
+    isPositive: true,
+    gainers: 0,
+    losers: 0,
+    neutral: 0,
+    chartData: [83800, 84000, 83900, 84100, 84200]
+  }
+]
+
+const longBuildUpData: BuildUpItem[] = [
+  { name: 'ABB', prevClose: '5,221.50', ltp: '5,252.50', changePercent: '(0.59%)', newOI: '27.97L', oldOI: '27.91L', oiChange: '6.50K', isPositive: true },
+  { name: 'ASHOKLEY', prevClose: '150.04', ltp: '156.90', changePercent: '(4.57%)', newOI: '12.87Cr', oldOI: '11.45Cr', oiChange: '1.42Cr', isPositive: true },
+  { name: 'ASIANPAINT', prevClose: '2,889.20', ltp: '2,892.00', changePercent: '(0.10%)', newOI: '1.08Cr', oldOI: '1.06Cr', oiChange: '1.47L', isPositive: true },
+  { name: 'BAJAJFINSV', prevClose: '2,099.60', ltp: '2,123.80', changePercent: '(1.15%)', newOI: '1.85Cr', oldOI: '1.84Cr', oiChange: '1.30L', isPositive: true },
+  { name: 'BANKBARODA', prevClose: '289.70', ltp: '290.10', changePercent: '(0.14%)', newOI: '9.75Cr', oldOI: '9.31Cr', oiChange: '44.11L', isPositive: true },
+  { name: 'BANKNIFTY', prevClose: '59,817.20', ltp: '60,066.80', changePercent: '(0.42%)', newOI: '15.78L', oldOI: '14.39L', oiChange: '1.40L', isPositive: true },
+  { name: 'BDL', prevClose: '1,498.00', ltp: '1,507.00', changePercent: '(0.60%)', newOI: '45.90L', oldOI: '44.93L', oiChange: '97.18K', isPositive: true },
+  { name: 'BHEL', prevClose: '280.00', ltp: '285.00', changePercent: '(1.79%)', newOI: '50.00L', oldOI: '48.00L', oiChange: '2.00L', isPositive: true },
+  { name: 'CANBK', prevClose: '580.00', ltp: '585.00', changePercent: '(0.86%)', newOI: '20.00L', oldOI: '19.00L', oiChange: '1.00L', isPositive: true },
+]
+
+const shortBuildUpData: BuildUpItem[] = [
+  { name: 'ADANIENSOL', prevClose: '995.85', ltp: '988.65', changePercent: '(-0.72%)', newOI: '1.91Cr', oldOI: '1.91Cr', oiChange: '66.15K', isPositive: false },
+  { name: 'ADANIENT', prevClose: '2,326.40', ltp: '2,259.60', changePercent: '(-2.87%)', newOI: '1.72Cr', oldOI: '1.51Cr', oiChange: '20.82L', isPositive: false },
+  { name: 'ADANIGREEN', prevClose: '1,040.80', ltp: '1,039.90', changePercent: '(-0.09%)', newOI: '2.19Cr', oldOI: '2.16Cr', oiChange: '2.84L', isPositive: false },
+  { name: 'ADANIPORTS', prevClose: '1,517.50', ltp: '1,516.30', changePercent: '(-0.08%)', newOI: '2.41Cr', oldOI: '2.40Cr', oiChange: '66.03K', isPositive: false },
+  { name: 'ALKEM', prevClose: '5,798.50', ltp: '5,743.50', changePercent: '(-0.95%)', newOI: '16.13L', oldOI: '15.85L', oiChange: '28.75K', isPositive: false },
+  { name: 'AMBER', prevClose: '7,052.00', ltp: '6,975.00', changePercent: '(-1.09%)', newOI: '11.65L', oldOI: '11.17L', oiChange: '48.50K', isPositive: false },
+  { name: 'AMBUJACEM', prevClose: '553.95', ltp: '551.40', changePercent: '(-0.46%)', newOI: '4.66Cr', oldOI: '4.62Cr', oiChange: '4.01L', isPositive: false },
+  { name: 'APOLLOHOSP', prevClose: '6,200.00', ltp: '6,150.00', changePercent: '(-0.81%)', newOI: '15.00L', oldOI: '14.50L', oiChange: '50.00K', isPositive: false },
+  { name: 'AXISBANK', prevClose: '1,100.00', ltp: '1,090.00', changePercent: '(-0.91%)', newOI: '3.00Cr', oldOI: '2.90Cr', oiChange: '10.00L', isPositive: false },
+]
+
+const DashboardPage = () => {
+  const [activeTab, setActiveTab] = useState('Markets')
+
   return (
-    <div className={`kpi-card ${highlighted ? 'highlighted' : ''}`}>
-      <div className="kpi-header">
-        <h3 className="kpi-title">{title}</h3>
-        <div className="kpi-icon">{icon}</div>
+    <div className="dashboard-page">
+      {/* Sub Navigation */}
+      <div className="dashboard-nav">
+        {['Home', 'Markets', 'Commodities', 'Index Contributors', 'Find Strategy'].map((tab) => (
+          <button
+            key={tab}
+            className={`nav-tab ${activeTab === tab ? 'active' : ''}`}
+            onClick={() => setActiveTab(tab)}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
-      <div className="kpi-value">{value}</div>
-      <div className="kpi-description">{description}</div>
+
+      {/* Market Overview Cards */}
+      <div className="market-overview">
+        {(activeTab === 'Commodities' ? commodityIndices : marketIndices).map((index) => (
+          <div key={index.name} className="market-card">
+            <div className="market-card-header">
+              <h3>{index.name}</h3>
+              <div className="market-chart-placeholder">
+                {/* SVG Sparkline Placeholder */}
+                <svg width="100" height="40" viewBox="0 0 100 40">
+                  <path
+                    d={`M0 30 Q 20 ${index.isPositive ? 10 : 35}, 40 ${index.isPositive ? 15 : 25} T 100 ${index.isPositive ? 5 : 35}`}
+                    fill="none"
+                    stroke={index.isPositive ? '#22c55e' : '#ef4444'}
+                    strokeWidth="2"
+                  />
+                  <linearGradient id={`grad-${index.name}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor={index.isPositive ? '#22c55e' : '#ef4444'} stopOpacity="0.2" />
+                    <stop offset="100%" stopColor={index.isPositive ? '#22c55e' : '#ef4444'} stopOpacity="0" />
+                  </linearGradient>
+                  <path
+                    d={`M0 30 Q 20 ${index.isPositive ? 10 : 35}, 40 ${index.isPositive ? 15 : 25} T 100 ${index.isPositive ? 5 : 35} V 40 H 0 Z`}
+                    fill={`url(#grad-${index.name})`}
+                    stroke="none"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            <div className="market-values">
+              <span className={`current-value ${index.isPositive ? 'positive' : 'negative'}`}>
+                {index.value}
+              </span>
+              <span className="change-value">
+                {index.isPositive ? '↗' : '↘'} {index.change}
+              </span>
+            </div>
+
+            <div className="market-stats">
+              <div className="stat-item">
+                <span className="dot green"></span>
+                <span>{index.gainers} Gainers</span>
+              </div>
+              <div className="stat-item">
+                <span className="dot red"></span>
+                <span>{index.losers} Losers</span>
+              </div>
+              <div className="stat-item">
+                <span className="dot grey"></span>
+                <span>{index.neutral} Neutral</span>
+              </div>
+            </div>
+
+            <div className="market-actions">
+              <button className="action-link">Option Chain &gt;</button>
+              <button className="action-link">Combined Chart &gt;</button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Build Up Section (Scrollable Cards) */}
+      <div className="buildup-section">
+        <BuildUpCard title="Long Build Up" data={longBuildUpData} />
+        <BuildUpCard title="Short Build Up" data={shortBuildUpData} />
+      </div>
     </div>
   )
 }
 
-const DashboardPage = () => {
-  const [chartView, setChartView] = useState<'cumulative' | 'daily' | 'both'>('both')
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetchDashboardStats()
-    // Refresh stats every 30 seconds
-    const interval = setInterval(fetchDashboardStats, 30000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const fetchDashboardStats = async () => {
-    try {
-      const response = await api.get<DashboardStats>('/api/portfolio/dashboard-stats')
-      setStats(response.data)
-    } catch (error) {
-      console.error('Failed to fetch dashboard stats:', error)
-      // Set default values on error
-      setStats({
-        available_balance: 0,
-        number_trades: 0,
-        today_pnl: 0,
-        total_balance: 0,
-        weekly_pnl: 0,
-        monthly_pnl: 0
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Format currency with Indian number formatting
-  const formatCurrency = (value: number): string => {
-    return `₹ ${value.toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`
-  }
-
-  // Sample data for the performance chart
-  const performanceData = [
-    { date: '23 Oct', netDaily: -2000, cumulative: -2000 },
-    { date: '24 Oct', netDaily: -1500, cumulative: -3500 },
-    { date: '25 Oct', netDaily: -1000, cumulative: -4500 },
-    { date: '26 Oct', netDaily: 1000, cumulative: -3500 },
-    { date: '27 Oct', netDaily: 6000, cumulative: 2500 },
-    { date: '28 Oct', netDaily: -3000, cumulative: -500 },
-    { date: '29 Oct', netDaily: -7000, cumulative: -7500 },
-    { date: '30 Oct', netDaily: 5000, cumulative: -2500 },
-    { date: '31 Oct', netDaily: -2000, cumulative: -4500 },
-    { date: '01 Nov', netDaily: 1000, cumulative: -3500 },
-    { date: '02 Nov', netDaily: -1000, cumulative: -4500 },
-    { date: '03 Nov', netDaily: -3000, cumulative: -7500 },
-  ]
-
-  // Custom function to get color based on value
-  const getBarColor = (value: number) => {
-    return value >= 0 ? '#27AE60' : '#E74C3C'
-  }
-
-  if (loading) {
-    return (
-      <div className="dashboard-page">
-        <div style={{ padding: '2rem', textAlign: 'center' }}>Loading dashboard...</div>
-      </div>
-    )
-  }
-
+const BuildUpCard = ({ title, data }: { title: string; data: BuildUpItem[] }) => {
   return (
-    <div className="dashboard-page">
-      <div className="kpi-grid">
-        <KPICard
-          title="Available Balance"
-          value={stats ? formatCurrency(stats.available_balance) : '₹ 0.00'}
-          description="Total Available balance"
-          icon={
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <rect x="4" y="8" width="24" height="18" rx="2" fill="#27AE60" fillOpacity="0.2"/>
-              <path d="M16 12V20M12 16H20" stroke="#27AE60" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M8 14H24" stroke="#27AE60" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          }
-        />
-        <KPICard
-          title="Number Trades"
-          value={stats ? stats.number_trades.toString() : '0'}
-          description="Today Number of Trades"
-          icon={
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <rect x="6" y="6" width="20" height="20" rx="2" fill="#F39C12" fillOpacity="0.2"/>
-              <path d="M12 12H20M12 16H20M12 20H16" stroke="#F39C12" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          }
-          highlighted
-        />
-        <KPICard
-          title="Profit & Loss (P&L)"
-          value={stats ? formatCurrency(stats.today_pnl) : '₹ 0.00'}
-          description="Today Total Profit & Loss"
-          icon={
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <path d="M4 20L12 12L18 18L28 8" stroke="#27AE60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M28 8H22V14" stroke="#27AE60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          }
-        />
-        <KPICard
-          title="Total Balance"
-          value={stats ? formatCurrency(stats.total_balance) : '₹ 0.00'}
-          description="Total Available balance + Profit"
-          icon={
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <rect x="6" y="6" width="20" height="20" rx="2" fill="#3498DB" fillOpacity="0.2"/>
-              <path d="M12 12H20M12 16H20M12 20H20" stroke="#3498DB" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          }
-        />
-        <KPICard
-          title="Weekly P&L"
-          value={stats ? formatCurrency(stats.weekly_pnl) : '₹ 0.00'}
-          description="Weekly P&L"
-          icon={
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <circle cx="16" cy="16" r="12" stroke="#27AE60" strokeWidth="2" fill="#27AE60" fillOpacity="0.2"/>
-              <path d="M16 8V16L20 20" stroke="#27AE60" strokeWidth="2" strokeLinecap="round"/>
-              <text x="16" y="18" textAnchor="middle" fontSize="8" fill="#27AE60" fontWeight="bold">WEEK</text>
-            </svg>
-          }
-        />
-        <KPICard
-          title="Monthly (P&L)"
-          value={stats ? formatCurrency(stats.monthly_pnl) : '₹ 0.00'}
-          description="Monthly Profit & Loss"
-          icon={
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <circle cx="16" cy="16" r="12" stroke="#FF6B9D" strokeWidth="2" fill="#FF6B9D" fillOpacity="0.2"/>
-              <path d="M16 8V16L20 20" stroke="#FF6B9D" strokeWidth="2" strokeLinecap="round"/>
-              <text x="16" y="18" textAnchor="middle" fontSize="8" fill="#FF6B9D" fontWeight="bold">MONTH</text>
-            </svg>
-          }
-        />
+    <div className="buildup-card">
+      <div className="buildup-header">
+        <button className="nav-arrow">&lt;</button>
+        <h3>{title}</h3>
+        <button className="nav-arrow">&gt;</button>
       </div>
-
-      <div className="performance-card">
-        <div className="performance-header">
-          <h2 className="performance-title">Performance</h2>
-          <div className="performance-controls">
-            <button
-              className={`chart-toggle ${chartView === 'cumulative' ? 'active' : ''}`}
-              onClick={() => setChartView('cumulative')}
-            >
-              Cumulative P/L
-            </button>
-            <button
-              className={`chart-toggle ${chartView === 'daily' ? 'active' : ''}`}
-              onClick={() => setChartView('daily')}
-            >
-              Net Daily P/L
-            </button>
-            <button
-              className={`chart-toggle ${chartView === 'both' ? 'active' : ''}`}
-              onClick={() => setChartView('both')}
-            >
-              Both
-            </button>
-          </div>
-        </div>
-        <div className="performance-chart">
-          <ResponsiveContainer width="100%" height={400}>
-            <ComposedChart data={performanceData} margin={{ top: 10, right: 80, left: 20, bottom: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-              <XAxis dataKey="date" stroke="#666" />
-              <YAxis
-                yAxisId="left"
-                label={{ value: 'Net Daily Profit and Loss', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
-                stroke="#666"
-                domain={[-8000, 8000]}
-              />
-              <YAxis
-                yAxisId="right"
-                orientation="right"
-                label={{ value: 'Cumulative Profit and Loss', angle: 90, position: 'insideRight', style: { textAnchor: 'middle' } }}
-                stroke="#666"
-                domain={[-20000, 20000]}
-              />
-              <defs>
-                <linearGradient id="colorCumulative" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#E74C3C" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="#E74C3C" stopOpacity={0.1} />
-                </linearGradient>
-              </defs>
-              <Tooltip />
-              {(chartView === 'cumulative' || chartView === 'both') && (
-                <Area
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="cumulative"
-                  fill="url(#colorCumulative)"
-                  fillOpacity={0.3}
-                  stroke="#E74C3C"
-                  strokeWidth={2}
-                  name="Cumulative P/L"
-                />
-              )}
-              {(chartView === 'daily' || chartView === 'both') && (
-                <Bar yAxisId="left" dataKey="netDaily" name="Net Daily P/L">
-                  {performanceData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={getBarColor(entry.netDaily)} />
-                  ))}
-                </Bar>
-              )}
-              <Legend />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="performance-footer">
-          <span className="performance-help">What's this? Learn more.</span>
-        </div>
+      <div className="buildup-table-container">
+        <table className="buildup-table">
+          <thead>
+            <tr>
+              <th>Name <span className="sort-icon">◆</span></th>
+              <th>Prev Close / LTP(Change%) <span className="sort-icon">◆</span></th>
+              <th>New OI <span className="sort-icon">◆</span></th>
+              <th>Old OI <span className="sort-icon">◆</span></th>
+              <th>OI(Change) <span className="sort-icon">◆</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((item, idx) => (
+              <tr key={idx}>
+                <td className="fw-medium">{item.name}</td>
+                <td>
+                  <div className="price-cell">
+                    <span>{item.prevClose}</span>
+                    <span className={item.isPositive ? 'text-green' : 'text-red'}>
+                      {item.ltp} {item.changePercent}
+                    </span>
+                  </div>
+                </td>
+                <td>{item.newOI}</td>
+                <td>{item.oldOI}</td>
+                <td>{item.oiChange}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="buildup-footer">
+        <button className="expand-btn">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M2 4L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
       </div>
     </div>
   )
