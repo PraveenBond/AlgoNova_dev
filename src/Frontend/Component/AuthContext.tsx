@@ -30,6 +30,34 @@ interface AuthProviderProps {
   children: ReactNode
 }
 
+const sanitizeUser = (rawUser: any): User => {
+  const source = rawUser?.user || rawUser?.profile?.data || rawUser?.profile || rawUser || {}
+  const usernameCandidate =
+    source.username ||
+    source.display_name ||
+    source.name ||
+    source.client_id ||
+    source.user_id ||
+    'Fyers User'
+  const emailCandidate =
+    source.email ||
+    source.email_id ||
+    `${(source.client_id || usernameCandidate || 'fyers').toString().toLowerCase()}@fyers.local`
+  const rawId = source.id || source.client_id || source.user_id || Date.now()
+  let numericId: number
+  if (typeof rawId === 'number' && Number.isFinite(rawId)) {
+    numericId = rawId
+  } else {
+    const parsed = parseInt(String(rawId).replace(/\D/g, ''), 10)
+    numericId = Number.isFinite(parsed) ? parsed : Date.now()
+  }
+  return {
+    id: numericId,
+    username: String(usernameCandidate),
+    email: String(emailCandidate),
+  }
+}
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
@@ -38,7 +66,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Check for stored token on mount
     const storedToken = localStorage.getItem('token')
     if (storedToken) {
-      // Check if it's a Kite session
+      // Prefer Fyers session if available
+      const fyersSessionStr = localStorage.getItem('fyers_session')
+      if (fyersSessionStr) {
+        try {
+          const fyersSession = JSON.parse(fyersSessionStr)
+          if (fyersSession.fyers_authenticated) {
+            setToken(storedToken)
+            setUser(sanitizeUser(fyersSession))
+            return
+          }
+        } catch (e) {
+          // Invalid Fyers session, continue with other auth modes
+        }
+      }
+
+      // Then check for stored Kite session
       const kiteSessionStr = localStorage.getItem('kite_session')
       if (kiteSessionStr) {
         try {
@@ -70,9 +113,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(userData)
     } catch (error) {
       console.error('Failed to fetch user info:', error)
-      // Don't remove token if it's a Kite session
+      // Don't remove token if it's a Kite or Fyers session
       const kiteSessionStr = localStorage.getItem('kite_session')
-      if (!kiteSessionStr) {
+      const fyersSessionStr = localStorage.getItem('fyers_session')
+      if (!kiteSessionStr && !fyersSessionStr) {
         localStorage.removeItem('token')
         setToken(null)
       }
@@ -97,6 +141,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setToken(null)
     localStorage.removeItem('token')
     localStorage.removeItem('kite_session')
+    localStorage.removeItem('fyers_session')
   }
 
   const value: AuthContextType = {

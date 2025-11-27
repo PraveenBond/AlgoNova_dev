@@ -1,8 +1,36 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../Component/AuthContext'
-import api from '../services/api'
+import api, { API_ORIGIN } from '../services/api'
 import './LoginPage.css'
+
+const buildFyersUser = (profilePayload: any) => {
+  const profileData = profilePayload?.data || profilePayload || {}
+  const rawId = profileData.client_id || profileData.user_id || profileData.id || Date.now()
+  const username =
+    profileData.display_name ||
+    profileData.name ||
+    profileData.client_name ||
+    profileData.client_id ||
+    'Fyers User'
+  const email =
+    profileData.email ||
+    profileData.email_id ||
+    `${(profileData.client_id || 'fyers').toString().toLowerCase()}@fyers.local`
+  const numericId =
+    typeof rawId === 'number' && Number.isFinite(rawId)
+      ? rawId
+      : (() => {
+          const parsed = parseInt(String(rawId).replace(/\D/g, ''), 10)
+          return Number.isFinite(parsed) ? parsed : Date.now()
+        })()
+
+  return {
+    id: numericId,
+    username: String(username),
+    email: String(email)
+  }
+}
 
 const LoginPage = () => {
   const [username, setUsername] = useState('')
@@ -96,17 +124,83 @@ const LoginPage = () => {
     setError('')
     setFyersLoading(true)
 
+    let fyersPopup: Window | null = null
+    let popupMonitor: number | undefined
+
+    const backendOrigin = API_ORIGIN
+
+    const removeListeners = () => {
+      if (popupMonitor) {
+        window.clearInterval(popupMonitor)
+        popupMonitor = undefined
+      }
+      window.removeEventListener('message', messageHandler)
+    }
+
+    const finalize = () => {
+      removeListeners()
+      if (fyersPopup && !fyersPopup.closed) {
+        fyersPopup.close()
+      }
+      setFyersLoading(false)
+    }
+
+    function messageHandler(event: MessageEvent<any>) {
+      if (event.origin !== backendOrigin) {
+        return
+      }
+      const payload = event.data
+      if (!payload || payload.provider !== 'fyers') {
+        return
+      }
+
+      finalize()
+
+      if (payload.success) {
+        const fyersProfile = payload.data?.profile || {}
+        const sessionToken = payload.data?.access_token || `fyers_${Date.now()}`
+        const fyersSession = {
+          token: sessionToken,
+          profile: fyersProfile,
+          user: buildFyersUser(fyersProfile),
+          fyers_authenticated: true
+        }
+        localStorage.setItem('token', sessionToken)
+        localStorage.setItem('fyers_session', JSON.stringify(fyersSession))
+        window.location.href = '/'
+      } else {
+        setError(payload.error || 'Failed to connect to Fyers')
+      }
+    }
+
+    window.addEventListener('message', messageHandler)
+
     try {
       const response = await api.get('/api/fyers/login-url')
       if (response.data.success && response.data.login_url) {
-        window.location.href = response.data.login_url
+        fyersPopup = window.open(
+          response.data.login_url,
+          'fyers-login',
+          'width=520,height=720,top=120,left=160'
+        )
+
+        if (!fyersPopup) {
+          throw new Error('Popup blocked. Please allow popups for this site.')
+        }
+
+        popupMonitor = window.setInterval(() => {
+          if (fyersPopup && fyersPopup.closed) {
+            removeListeners()
+            setFyersLoading(false)
+            setError('Fyers login window was closed before completion.')
+          }
+        }, 400)
       } else {
-        setError('Failed to get Fyers login URL')
-        setFyersLoading(false)
+        throw new Error('Failed to get Fyers login URL')
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to connect to Fyers')
-      setFyersLoading(false)
+      finalize()
+      setError(err.response?.data?.detail || err.message || 'Failed to connect to Fyers')
     }
   }
 

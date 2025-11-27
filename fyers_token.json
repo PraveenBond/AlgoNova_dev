@@ -1,0 +1,24 @@
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiZDoxIiwiZDoyIiwieDowIiwieDoxIiwieDoyIl0sImF0X2hhc2giOiJnQUFBQUFCcEp2aWVPLXdGMVR3Wjh4dVF6UDRFR0d1WWo3S1VBM0gxOVRQdW1GZXBBNzZSdHNIUWFWY3Z4YnExRTJ1SEx3OWliQVRfYWhnYmpaTkgzVDBkQVp0eU1Bbnh1aGszN0JUanozSnY3MTVTSDd2WTJBND0iLCJkaXNwbGF5X25hbWUiOiIiLCJvbXMiOiJLMSIsImhzbV9rZXkiOiIyMTNiMjRiZmY1MWI2YmY2NGRlM2Y0M2U2OTFkZWY1MDg4OTU1MmZiYjFiYWE0ZGNmMzdiMDgzOSIsImlzRGRwaUVuYWJsZWQiOiJOIiwiaXNNdGZFbmFibGVkIjoiTiIsImZ5X2lkIjoiWUsxODMyNiIsImFwcFR5cGUiOjEwMCwiZXhwIjoxNzY0MjAzNDAwLCJpYXQiOjE3NjQxNjE2OTQsImlzcyI6ImFwaS5meWVycy5pbiIsIm5iZiI6MTc2NDE2MTY5NCwic3ViIjoiYWNjZXNzX3Rva2VuIn0.Fk5pqCv8JNJDE5pErZPlUwvRm1xCx1whPM7XOo0lY4g",
+  "profile": {
+    "s": "ok",
+    "code": 200,
+    "message": "",
+    "data": {
+      "fy_id": "YK18326",
+      "name": "KODI PRAVEEN KUMAR",
+      "image": null,
+      "display_name": null,
+      "pin_change_date": "25-11-2025 20:59:40",
+      "email_id": "kxxxxxxxxxxxx0@gmail.com",
+      "pwd_change_date": null,
+      "PAN": "GExxxxxx8R",
+      "mobile_number": "79xxxxxx49",
+      "totp": false,
+      "pwd_to_expire": 90,
+      "ddpi_enabled": false,
+      "mtf_enabled": false
+    }
+  },
+  "stored_at": "2025-11-26T12:54:56.544875+00:00"
+}
