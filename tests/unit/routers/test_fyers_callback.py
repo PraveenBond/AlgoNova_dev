@@ -66,3 +66,46 @@ def test_get_profile_returns_cached_data(monkeypatch: pytest.MonkeyPatch, tmp_pa
     assert response.status_code == 200
     assert response.json()["data"]["data"]["client_id"] == "FY123"
 
+
+def test_option_chain_endpoint_returns_data(monkeypatch: pytest.MonkeyPatch):
+    """Given valid params When /option-chain called Then service payload returned."""
+    app = FastAPI()
+    app.include_router(fyers_router.router, prefix="/api/fyers")
+
+    captured = {}
+
+    class DummyService:
+        def fetch_option_chain(self, request):
+            captured["request"] = request
+            return {"chain": ["CALL", "PUT"], "symbol": request.symbol}
+
+    monkeypatch.setattr(fyers_router, "FyersService", lambda: DummyService())
+
+    client = TestClient(app)
+    response = client.get(
+        "/api/fyers/option-chain",
+        params={"symbol": "NSE:TCS-EQ", "strikecount": 2},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["data"]["symbol"] == "NSE:TCS-EQ"
+    assert captured["request"].strikecount == 2
+
+
+def test_option_chain_endpoint_handles_validation_error(monkeypatch: pytest.MonkeyPatch):
+    """Given invalid params When option-chain requested Then 400 is returned."""
+    app = FastAPI()
+    app.include_router(fyers_router.router, prefix="/api/fyers")
+
+    class DummyService:
+        def fetch_option_chain(self, request):
+            raise ValueError("symbol is required for option chain request")
+
+    monkeypatch.setattr(fyers_router, "FyersService", lambda: DummyService())
+
+    client = TestClient(app)
+    response = client.get("/api/fyers/option-chain", params={"symbol": "NSE:TCS-EQ"})
+
+    assert response.status_code == 400
+    assert "symbol is required" in response.json()["detail"]
+

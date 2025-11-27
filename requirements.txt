@@ -8,3 +8,5 @@ pydantic-settings
 fyers-apiv3
 pytest
 
+sqlalchemy
+pyodbc

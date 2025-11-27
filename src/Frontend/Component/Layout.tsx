@@ -97,6 +97,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </svg>
             <span>Market</span>
           </Link>
+          <Link to="/option-chain" className={`sidebar-link ${isActive('/option-chain') ? 'active' : ''}`}>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M3 4H17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path d="M3 10H17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path d="M3 16H17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path d="M7 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path d="M13 8V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path d="M10 14V18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            <span>Option Chain</span>
+          </Link>
           <Link to="/orders" className={`sidebar-link ${isActive('/orders') ? 'active' : ''}`}>
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M4 4H16V16H4V4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

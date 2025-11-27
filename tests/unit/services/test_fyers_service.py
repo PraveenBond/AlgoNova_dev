@@ -5,7 +5,8 @@ from typing import Any, Dict
 
 import pytest
 
-from APP.services.fyers_service import FyersService
+from APP.fyersApp.services import FyersService
+from APP.fyersApp.models import OptionChainRequest
 
 
 class _DummySession:
@@ -35,6 +36,13 @@ class _DummyFyers:
 
     def get_profile(self) -> Dict[str, str]:
         return {"data": {"name": "AlgoNova Trader"}}
+
+    def optionchain(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "s": "ok",
+            "request": data,
+            "token_seen": self.token,
+        }
 
 
 def _reset_env(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -106,4 +114,37 @@ def test_missing_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
 
     with pytest.raises(ValueError):
         FyersService(session_factory=_DummySession, fyers_factory=_DummyFyers)
+
+
+def test_fetch_option_chain(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+    """Given stored token When fetch_option_chain called Then fyers data returned."""
+    _reset_env(monkeypatch)
+    service = _service(monkeypatch, tmp_path)
+    service.exchange_auth_code("abc123")
+
+    request = OptionChainRequest(symbol="NSE:TCS-EQ", strikecount=2, timestamp="")
+    result = service.fetch_option_chain(request)
+
+    assert result["s"] == "ok"
+    assert result["request"]["symbol"] == "NSE:TCS-EQ"
+
+def test_fetch_option_chain_handles_fyers_error(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+    """Given fyers error When fetch_option_chain called Then ValueError raised."""
+    _reset_env(monkeypatch)
+    service_with_token = _service(monkeypatch, tmp_path)
+    service_with_token.exchange_auth_code("abc123")
+
+    monkeypatch.setenv("FYERS_APP_ID", "APP-5678")
+    monkeypatch.setenv("FYERS_SECRET_KEY", "secret-xyz")
+    monkeypatch.setenv("FYERS_LOG_PATH", str(tmp_path / "logs"))
+    monkeypatch.setenv("FYERS_TOKEN_PATH", str(tmp_path / "fyers_token.json"))
+
+    class ErrorFyers(_DummyFyers):
+        def optionchain(self, data: Dict[str, Any]) -> Dict[str, Any]:
+            return {"s": "error", "message": "token expired"}
+
+    error_service = FyersService(session_factory=_DummySession, fyers_factory=ErrorFyers)
+
+    with pytest.raises(ValueError, match="token expired"):
+        error_service.fetch_option_chain(OptionChainRequest(symbol="NSE:TCS-EQ"))
 

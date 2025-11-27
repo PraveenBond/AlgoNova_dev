@@ -6,7 +6,8 @@ from urllib.parse import quote_plus, urlparse
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import HTMLResponse
 
-from APP.services.fyers_service import FyersService
+from APP.fyersApp.models import OptionChainRequest
+from APP.fyersApp.services import FyersService
 
 
 router = APIRouter()
@@ -32,8 +33,8 @@ async def get_fyers_login_url() -> Dict[str, Any]:
         service = FyersService()
         login_url = service.get_login_url()
         return {"success": True, "login_url": login_url}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 @router.get("/callback")
@@ -131,3 +132,33 @@ async def get_fyers_profile(
         return {"success": True, "data": session["profile"]}
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc))
+
+
+@router.get("/option-chain")
+async def get_option_chain(
+    symbol: str = Query(..., description="Underlying symbol e.g. NSE:TCS-EQ"),
+    strikecount: int = Query(
+        1, ge=1, le=50, description="Number of strikes to fetch on each side"
+    ),
+    timestamp: Optional[str] = Query(
+        None, description="Optional UNIX timestamp for historical chain"
+    ),
+) -> Dict[str, Any]:
+    """
+    Fetch the option-chain snapshot from Fyers for the requested symbol.
+    """
+    try:
+        request = OptionChainRequest(
+            symbol=symbol,
+            strikecount=strikecount,
+            timestamp=timestamp or "",
+        )
+        service = FyersService()
+        data = service.fetch_option_chain(request)
+        return {"success": True, "data": data}
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+

@@ -7,6 +7,8 @@ from typing import Any, Dict, Iterable, Optional
 from dotenv import load_dotenv
 from fyers_apiv3.fyersModel import FyersModel, SessionModel
 
+from APP.fyersApp.models import OptionChainRequest
+
 load_dotenv()
 
 
@@ -108,11 +110,7 @@ class FyersService:
                 f"Failed to generate access token from auth_code: {token_response}"
             )
 
-        fyers = self.fyers_factory(
-            client_id=self.app_id,
-            token=access_token_value,
-            log_path=self.log_path,
-        )
+        fyers = self._create_fyers_client(access_token_value)
 
         profile = fyers.get_profile()
         self._store_session(access_token_value, profile)
@@ -142,11 +140,35 @@ class FyersService:
 
     def refresh_profile(self) -> Dict[str, Any]:
         session = self._load_session()
-        fyers = self.fyers_factory(
-            client_id=self.app_id,
-            token=session["access_token"],
-            log_path=self.log_path,
-        )
+        fyers = self._create_fyers_client(session["access_token"])
         profile = fyers.get_profile()
         self._store_session(session["access_token"], profile)
         return {"access_token": session["access_token"], "profile": profile}
+
+    def _create_fyers_client(self, access_token: str) -> FyersModel:
+        """Instantiate a Fyers client with shared configuration."""
+        return self.fyers_factory(
+            client_id=self.app_id,
+            token=access_token,
+            log_path=self.log_path,
+        )
+
+    def fetch_option_chain(self, request: OptionChainRequest) -> Dict[str, Any]:
+        """
+        Fetch option-chain data for the given request using the cached token.
+        """
+        session = self._load_session()
+        fyers = self._create_fyers_client(session["access_token"])
+        payload = request.to_payload()
+        response = fyers.optionchain(data=payload)
+        if not isinstance(response, dict):
+            raise ValueError("Unexpected response from Fyers optionchain API")
+
+        status = response.get("s")
+        if status and status.lower() != "ok":
+            message = response.get("message") or response.get("error") or "Unknown error"
+            raise ValueError(f"Fyers optionchain error: {message}")
+
+        return response
+
+
