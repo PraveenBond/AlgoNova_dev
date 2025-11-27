@@ -3,27 +3,29 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #2c3e50;
-    font-family: inherit;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
     user-select: none;
 }
 
 .digital-clock .time {
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 1.75rem;
+    font-weight: 800;
     line-height: 1;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--gradient-primary);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    animation: pulse 3s ease-in-out infinite;
 }
 
 .digital-clock .date {
-    font-size: 0.75rem;
-    color: #7f8c8d;
-    margin-top: 4px;
-    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 6px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
 }
